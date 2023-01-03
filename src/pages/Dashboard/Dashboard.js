@@ -1,4 +1,4 @@
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, InputNumber } from "antd";
 import React from "react";
 import * as Tone from "tone";
 import { SongDownloaderService } from "../../services/songDownloaderService";
@@ -24,7 +24,7 @@ const Dashboard = () => {
 			const player = new Tone.Player(buff).toDestination();
 
 			// apply playback rate
-			player.playbackRate = slowedAmount;
+			player.playbackRate = 1 - slowedAmount;
 
 			// apply reverb
 			const reverb = new Tone.Reverb({
@@ -47,8 +47,8 @@ const Dashboard = () => {
 				initialValues={{
 					title: "",
 					artist: "",
-					slowedAmount: -12,
-					reverbAmount: 2,
+					slowedAmount: 0.5,
+					reverbAmount: 0.5,
 				}}
 			>
 				<Form.Item
@@ -85,9 +85,15 @@ const Dashboard = () => {
 							required: true,
 							message: "Please input your slowed!",
 						},
+						{
+							type: "number",
+							min: 0,
+							max: 1,
+							message: "Please input a number between 0 and 1",
+						},
 					]}
 				>
-					<Input />
+					<InputNumber step={0.1} />
 				</Form.Item>
 
 				<Form.Item
@@ -98,9 +104,15 @@ const Dashboard = () => {
 							required: true,
 							message: "Please input your reverb!",
 						},
+						{
+							type: "number",
+							min: 0,
+							max: 1,
+							message: "Please input a number between 0 and 1",
+						},
 					]}
 				>
-					<Input />
+					<InputNumber step={0.1} />
 				</Form.Item>
 
 				<Button type="primary" htmlType="submit">
