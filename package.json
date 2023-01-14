@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.1.2",
     "axios": "^1.2.2",
+    "clsx": "^1.2.1",
     "dexie": "^3.2.2",
     "dexie-react-hooks": "^1.1.1",
     "dotenv": "^16.0.3",

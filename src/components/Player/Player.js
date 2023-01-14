@@ -5,6 +5,7 @@ import {
 	StepForwardFilled,
 } from "@ant-design/icons";
 import { Button } from "antd";
+import clsx from "clsx";
 import React from "react";
 import { PlayerContext } from "../../context/PlayerContextProvider";
 import style from "./Player.module.scss";
@@ -22,27 +23,39 @@ const Player = () => {
 
 	return (
 		<div className={style.playerContainer}>
-			<Button
-				shape="circle"
-				icon={<StepBackwardFilled />}
-				onClick={skipToPreviousTrack}
-			/>
-			<Button
-				shape="circle"
-				onClick={() => {
-					if (player.isPlaying) {
-						pausePlayer();
-					} else {
-						resumePlayer();
-					}
-				}}
-				icon={player.isPlaying ? <PauseCircleFilled /> : <PlayCircleFilled />}
-			/>
-			<Button
-				shape="circle"
-				icon={<StepForwardFilled />}
-				onClick={skipToNextTrack}
-			/>
+			<div className={style.playerButtons}>
+				<Button
+					type="text"
+					shape="circle"
+					onClick={skipToPreviousTrack}
+					size="large"
+				>
+					<StepBackwardFilled />
+				</Button>
+				<Button
+					size="large"
+					className={clsx(style.playButton, "mx-2")}
+					type="text"
+					shape="circle"
+					onClick={() => {
+						if (player.isPlaying) {
+							pausePlayer();
+						} else {
+							resumePlayer();
+						}
+					}}
+				>
+					{player.isPlaying ? <PauseCircleFilled /> : <PlayCircleFilled />}
+				</Button>
+				<Button
+					type="text"
+					shape="circle"
+					onClick={skipToNextTrack}
+					size="large"
+				>
+					<StepForwardFilled />
+				</Button>
+			</div>
 		</div>
 	);
 };
