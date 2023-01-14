@@ -1,6 +1,7 @@
 import React from "react";
 import { SongDownloaderService } from "../services/songDownloaderService";
 import { db } from "../utils/db";
+import { omit } from "lodash";
 
 export const TracksContext = React.createContext(null);
 
@@ -24,16 +25,17 @@ const TracksContextProvider = ({ children }) => {
 				// put the track in indexedDB
 				await db.tracks.put(track);
 			}
-		} finally {
+
 			// update the tracksById state
 			setTracksById((tracksById) => ({
 				...tracksById,
 				[track?.id]: {
-					...track,
-					audioBlob: null,
+					...omit(track, ["audioBlob"]),
 				},
 			}));
-
+		} catch (error) {
+			console.error(error);
+		} finally {
 			setIsLoading(false);
 		}
 	};
@@ -54,16 +56,17 @@ const TracksContextProvider = ({ children }) => {
 				// put the track in indexedDB
 				await db.tracks.put(track);
 			}
-		} finally {
+
 			// update the tracksById state
 			setTracksById((tracksById) => ({
 				...tracksById,
 				[track?.id]: {
-					...track,
-					audioBlob: null,
+					...omit(track, ["audioBlob"]),
 				},
 			}));
-
+		} catch (error) {
+			console.error(error);
+		} finally {
 			setIsLoading(false);
 		}
 	};

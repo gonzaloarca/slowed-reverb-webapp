@@ -4,13 +4,12 @@ import { createTrack } from "../utils/tracks";
 const extractMetadata = (res) => {
 	const title = res.headers["x-title"];
 	const artist = res.headers["x-artist"];
-	const album = res.headers["x-album"];
 	const duration = res.headers["x-duration"];
 	const youtubeId = res.headers["x-youtube-id"];
 	const contentDisposition = res.headers["content-disposition"];
 	const fileName = contentDisposition?.split("filename=")[1];
 
-	return { title, artist, album, duration, youtubeId, fileName };
+	return { title, artist, duration, youtubeId, fileName };
 };
 
 const downloadFromArtistAndTitle = async (artist, title) => {
@@ -47,11 +46,11 @@ const downloadFromSpotifyTrackId = async (trackId) => {
 
 	const metadata = extractMetadata(response);
 
-	return {
+	return createTrack({
 		...metadata,
 		spotifyId: trackId,
 		audioBlob: response.data,
-	};
+	});
 };
 
 const downloadFromYoutubeVideoId = async (videoId) => {
@@ -66,10 +65,10 @@ const downloadFromYoutubeVideoId = async (videoId) => {
 
 	const metadata = extractMetadata(response);
 
-	return {
+	return createTrack({
 		...metadata,
 		audioBlob: response.data,
-	};
+	});
 };
 
 export const SongDownloaderService = {

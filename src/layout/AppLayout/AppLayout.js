@@ -1,6 +1,7 @@
 import { Layout } from "antd";
 import React, { Suspense } from "react";
 import { Outlet } from "react-router-dom";
+import Player from "../../components/Player";
 import SplashScreen from "../../pages/SplashScreen/SplashScreen";
 import BottomNav from "../BottomNav";
 import SideNav from "../SideNav";
@@ -24,6 +25,7 @@ const AppLayout = () => {
 				</Content>
 			</Layout>
 			<Footer>
+				<Player />
 				<BottomNav />
 			</Footer>
 		</Layout>

@@ -25,7 +25,7 @@ const PlayerContextProvider = ({ children }) => {
 		}));
 	};
 
-	const playTrack = (trackId) => {
+	const selectTrack = (trackId) => {
 		const track = tracksById[trackId];
 
 		if (!track) {
@@ -42,6 +42,13 @@ const PlayerContextProvider = ({ children }) => {
 		}
 	};
 
+	const resumePlayer = () => {
+		setPlayer((player) => ({
+			...player,
+			isPlaying: true,
+		}));
+	};
+
 	const pausePlayer = () => {
 		setPlayer((player) => ({
 			...player,
@@ -53,7 +60,7 @@ const PlayerContextProvider = ({ children }) => {
 		const nextTrack = pollTrackQueue();
 
 		if (nextTrack) {
-			playTrack(nextTrack.id);
+			selectTrack(nextTrack.id);
 		} else {
 			setPlayer(
 				createPlayer() // reset player
@@ -76,7 +83,7 @@ const PlayerContextProvider = ({ children }) => {
 
 		if (previousTrackId) {
 			addToTrackQueue(player.currentTrackId);
-			playTrack(previousTrackId);
+			selectTrack(previousTrackId);
 		}
 	};
 
@@ -91,11 +98,12 @@ const PlayerContextProvider = ({ children }) => {
 		<PlayerContext.Provider
 			value={{
 				player,
-				playTrack,
+				playTrack: selectTrack,
 				pausePlayer,
 				skipToNextTrack,
 				skipToPreviousTrack,
 				seekTo,
+				resumePlayer,
 				isLoading,
 			}}
 		>
