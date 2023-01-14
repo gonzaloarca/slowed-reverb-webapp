@@ -1,10 +1,7 @@
 import axios from "axios";
 
 export const songDownloaderApi = axios.create({
-	baseURL:
-		process.env.NODE_ENV === "production"
-			? process.env.REACT_APP_SONG_DOWNLOADER_API
-			: "/download",
+	baseURL: process.env.REACT_APP_SONG_DOWNLOADER_API,
 });
 
 // songDownloaderApi.interceptors.request.use(config => {

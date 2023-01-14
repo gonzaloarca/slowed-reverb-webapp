@@ -4,6 +4,9 @@ import AppLayout from "../../layout/AppLayout/AppLayout";
 import Routes from "../routes";
 
 const Dashboard = lazy(() => import("../../pages/Dashboard"));
+// const Playlist = lazy(() => import("../../pages/Playlist"));
+// const Search = lazy(() => import("../../pages/Search"));
+const Library = lazy(() => import("../../pages/Library"));
 
 const AppRouter = createBrowserRouter([
 	{
@@ -22,10 +25,10 @@ const AppRouter = createBrowserRouter([
 			//     path: Routes.Search,
 			//     element: <Search />
 			// },
-			// {
-			//     path: Routes.Library,
-			//     element: <Library />
-			// },
+			{
+				path: Routes.Library,
+				element: <Library />,
+			},
 			// {
 			//     path: Routes.Settings,
 			//     element: <Settings />
