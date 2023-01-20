@@ -14,25 +14,37 @@ const PlaylistsContextProvider = ({ children }) => {
 			return acc;
 		}, {})
 	);
+	const [fetchNextSpotifyPlaylists, setFetchNextSpotifyPlaylists] =
+		React.useState(null);
 	const { spotifyCredentials } = React.useContext(AuthContext);
 
 	const fetchSpotifyPlaylists = async () => {
 		try {
 			setIsLoading(true);
-			const userPlaylists = await SpotifyService.fetchUserPlaylists(
+			const fetchPlaylists =
+				fetchNextSpotifyPlaylists || SpotifyService.fetchUserPlaylists;
+
+			const { playlists: newPlaylists, fetchNext } = await fetchPlaylists(
 				spotifyCredentials
 			);
 
+			setFetchNextSpotifyPlaylists(() => fetchNext);
+
 			setPlaylists((prevPlaylists) => ({
 				...prevPlaylists,
-				[LibraryTabOptions.Spotify.value]: userPlaylists,
+				[LibraryTabOptions.Spotify.value]: [
+					...(prevPlaylists[LibraryTabOptions.Spotify.value] || []),
+					...newPlaylists,
+				],
 			}));
 		} catch (error) {
 			console.log(error);
 
 			setPlaylists((prevPlaylists) => ({
 				...prevPlaylists,
-				[LibraryTabOptions.Spotify.value]: [],
+				[LibraryTabOptions.Spotify.value]: [
+					...(prevPlaylists[LibraryTabOptions.Spotify.value] || []),
+				],
 			}));
 		} finally {
 			setIsLoading(false);
@@ -41,7 +53,12 @@ const PlaylistsContextProvider = ({ children }) => {
 
 	return (
 		<PlaylistsContext.Provider
-			value={{ playlists, fetchSpotifyPlaylists, isLoading }}
+			value={{
+				playlists,
+				fetchSpotifyPlaylists,
+				isLoading,
+				hasMore: !!fetchNextSpotifyPlaylists,
+			}}
 		>
 			{children}
 		</PlaylistsContext.Provider>
