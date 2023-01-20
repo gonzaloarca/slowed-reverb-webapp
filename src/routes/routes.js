@@ -4,6 +4,7 @@ const Routes = {
 	Playlist: "playlist/:playlistId",
 	Search: "search",
 	Library: "library",
+	SpotifyAuthSuccess: "spotify-auth-success",
 	Settings: "settings",
 };
 

@@ -1,6 +1,7 @@
 import React from "react";
-import SpotifyApi from "../api/spotifyApi";
 import LibraryTabOptions from "../pages/Library/libraryTabOptions";
+import SpotifyService from "../services/spotifyService";
+import { AuthContext } from "./AuthContextProvider";
 
 export const PlaylistsContext = React.createContext(null);
 
@@ -13,20 +14,26 @@ const PlaylistsContextProvider = ({ children }) => {
 			return acc;
 		}, {})
 	);
+	const { spotifyCredentials } = React.useContext(AuthContext);
 
 	const fetchSpotifyPlaylists = async () => {
 		try {
 			setIsLoading(true);
-			const userPlaylistsRes = await SpotifyApi.getUserPlaylists();
-
-			console.log(userPlaylistsRes.body.items);
+			const userPlaylists = await SpotifyService.fetchUserPlaylists(
+				spotifyCredentials
+			);
 
 			setPlaylists((prevPlaylists) => ({
 				...prevPlaylists,
-				[LibraryTabOptions.Spotify.value]: userPlaylistsRes.body.items,
+				[LibraryTabOptions.Spotify.value]: userPlaylists,
 			}));
 		} catch (error) {
 			console.log(error);
+
+			setPlaylists((prevPlaylists) => ({
+				...prevPlaylists,
+				[LibraryTabOptions.Spotify.value]: [],
+			}));
 		} finally {
 			setIsLoading(false);
 		}

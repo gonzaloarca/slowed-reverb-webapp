@@ -8,20 +8,23 @@ import TrackQueueContextProvider from "./context/TrackQueueContextProvider";
 import TrackHistoryContextProvider from "./context/TrackHistoryContextProvider";
 import PlayerContextProvider from "./context/PlayerContextProvider";
 import PlaylistsContextProvider from "./context/PlaylistsContextProvider";
+import AuthContextProvider from "./context/AuthContextProvider";
 
 function App() {
 	return (
-		<PlaylistsContextProvider>
-			<TracksContextProvider>
-				<TrackQueueContextProvider>
-					<TrackHistoryContextProvider>
-						<PlayerContextProvider>
-							<RouterProvider router={AppRouter} />;
-						</PlayerContextProvider>
-					</TrackHistoryContextProvider>
-				</TrackQueueContextProvider>
-			</TracksContextProvider>
-		</PlaylistsContextProvider>
+		<AuthContextProvider>
+			<PlaylistsContextProvider>
+				<TracksContextProvider>
+					<TrackQueueContextProvider>
+						<TrackHistoryContextProvider>
+							<PlayerContextProvider>
+								<RouterProvider router={AppRouter} />;
+							</PlayerContextProvider>
+						</TrackHistoryContextProvider>
+					</TrackQueueContextProvider>
+				</TracksContextProvider>
+			</PlaylistsContextProvider>
+		</AuthContextProvider>
 	);
 }
 

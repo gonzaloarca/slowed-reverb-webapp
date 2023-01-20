@@ -13,7 +13,7 @@ const extractMetadata = (res) => {
 };
 
 const downloadFromArtistAndTitle = async (artist, title) => {
-	const response = await songDownloaderApi.get("/from-artist-title", {
+	const response = await songDownloaderApi.get("/download/from-artist-title", {
 		params: {
 			artist,
 			title,
@@ -33,7 +33,7 @@ const downloadFromArtistAndTitle = async (artist, title) => {
 };
 
 const downloadFromSpotifyTrackId = async (trackId) => {
-	const response = await songDownloaderApi.get("/from-spotify-id", {
+	const response = await songDownloaderApi.get("/download/from-spotify-id", {
 		params: {
 			id: trackId,
 		},
@@ -54,7 +54,7 @@ const downloadFromSpotifyTrackId = async (trackId) => {
 };
 
 const downloadFromYoutubeVideoId = async (videoId) => {
-	const response = await songDownloaderApi.get("/from-youtube-id", {
+	const response = await songDownloaderApi.get("/download/from-youtube-id", {
 		params: {
 			id: videoId,
 		},
@@ -71,8 +71,28 @@ const downloadFromYoutubeVideoId = async (videoId) => {
 	});
 };
 
+const getSpotifyCredentials = async (code, state) => {
+	const response = await songDownloaderApi.get("/auth/spotify/callback", {
+		params: {
+			code,
+			state,
+		},
+	});
+
+	const { access_token, expires_in, refresh_token } = response.data;
+
+	const expiresAt = new Date().getTime() + expires_in * 1000;
+
+	return {
+		accessToken: access_token,
+		expiresAt,
+		refreshToken: refresh_token,
+	};
+};
+
 export const SongDownloaderService = {
 	downloadFromArtistAndTitle,
 	downloadFromSpotifyTrackId,
 	downloadFromYoutubeVideoId,
+	getSpotifyCredentials,
 };
