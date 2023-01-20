@@ -1,6 +1,8 @@
 import { Button, Spin } from "antd";
 import React, { useMemo } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import SpotifyPlaylistCard from "../../../components/SpotifyPlaylistCard";
 import { AuthContext } from "../../../context/AuthContextProvider";
 import { PlaylistsContext } from "../../../context/PlaylistsContextProvider";
 import LibraryTabOptions from "../libraryTabOptions";
@@ -36,19 +38,31 @@ const SpotifyPlaylists = () => {
 			<a href="http://localhost:8000/auth/spotify">Login with Spotify</a>
 		</Button>
 	) : (
-		<div>
-			<InfiniteScroll
-				dataLength={spotifyPlaylists?.length || 0}
-				next={fetchSpotifyPlaylists}
-				hasMore={hasMore}
-				loader={<Spin />}
-				scrollThreshold={0.95}
-			>
-				{spotifyPlaylists?.map((playlist) => (
-					<div key={playlist.id}>{JSON.stringify(playlist)}</div>
-				))}
-			</InfiniteScroll>
-		</div>
+		<InfiniteScroll
+			dataLength={spotifyPlaylists?.length || 0}
+			next={fetchSpotifyPlaylists}
+			hasMore={hasMore}
+			loader={
+				<div
+					className="flex justify-center align-center w-100"
+					style={{
+						height: "5vh",
+					}}
+				>
+					<LoadingSpinner />
+				</div>
+			}
+			scrollThreshold={0.95}
+			scrollableTarget="layout-content"
+		>
+			{spotifyPlaylists?.map((playlist) => (
+				<SpotifyPlaylistCard
+					playlist={playlist}
+					key={playlist?.id}
+					className="mb-2"
+				/>
+			))}
+		</InfiniteScroll>
 	);
 };
 

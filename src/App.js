@@ -18,7 +18,7 @@ function App() {
 					<TrackQueueContextProvider>
 						<TrackHistoryContextProvider>
 							<PlayerContextProvider>
-								<RouterProvider router={AppRouter} />;
+								<RouterProvider router={AppRouter} />
 							</PlayerContextProvider>
 						</TrackHistoryContextProvider>
 					</TrackQueueContextProvider>

@@ -1,11 +1,8 @@
 import React from "react";
 
-import { LoadingOutlined } from "@ant-design/icons";
-import { Spin } from "antd";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import LoadingSpinner from "../../components/LoadingSpinner";
 import { AuthContext } from "../../context/AuthContextProvider";
-
-const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
 const SpotifyAuthSuccess = () => {
 	const [searchParams] = useSearchParams();
@@ -35,7 +32,7 @@ const SpotifyAuthSuccess = () => {
 	return (
 		<div>
 			Loading
-			<Spin indicator={antIcon} />
+			<LoadingSpinner />
 		</div>
 	);
 };

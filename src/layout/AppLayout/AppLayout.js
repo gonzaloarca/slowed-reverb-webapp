@@ -18,7 +18,12 @@ const AppLayout = () => {
 				>
 					<SideNav />
 				</Sider>
-				<Content>
+				<Content
+					style={{
+						overflowY: "auto",
+					}}
+					id="layout-content"
+				>
 					<Suspense fallback={<SplashScreen />}>
 						<Outlet />
 					</Suspense>
