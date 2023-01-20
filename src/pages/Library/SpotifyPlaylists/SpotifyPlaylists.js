@@ -10,22 +10,35 @@ import LibraryTabOptions from "../libraryTabOptions";
 const SpotifyPlaylists = () => {
 	const { spotifyCredentials, isLoading: isAuthLoading } =
 		React.useContext(AuthContext);
-	const { playlists, fetchSpotifyPlaylists, isLoading, hasMore } =
-		React.useContext(PlaylistsContext);
-	const spotifyPlaylists = useMemo(
-		() => playlists?.[LibraryTabOptions.Spotify.value],
-		[playlists]
-	);
+	const {
+		playlists,
+		fetchSpotifyPlaylists,
+		isFetchingPlaylists,
+		hasMorePlaylists,
+	} = React.useContext(PlaylistsContext);
+	const spotifyPlaylists = useMemo(() => {
+		const spotifyPlaylists = playlists[LibraryTabOptions.Spotify.value];
+
+		if (!spotifyPlaylists) {
+			return null;
+		}
+
+		return Object.values(spotifyPlaylists);
+	}, [playlists]);
 
 	React.useEffect(() => {
 		console.log(playlists);
 
-		if (!spotifyPlaylists && !isLoading && spotifyCredentials.accessToken) {
+		if (
+			!spotifyPlaylists &&
+			!isFetchingPlaylists &&
+			spotifyCredentials.accessToken
+		) {
 			fetchSpotifyPlaylists();
 		}
 	}, [
 		spotifyPlaylists,
-		isLoading,
+		isFetchingPlaylists,
 		fetchSpotifyPlaylists,
 		playlists,
 		spotifyCredentials,
@@ -41,7 +54,7 @@ const SpotifyPlaylists = () => {
 		<InfiniteScroll
 			dataLength={spotifyPlaylists?.length || 0}
 			next={fetchSpotifyPlaylists}
-			hasMore={hasMore}
+			hasMore={hasMorePlaylists}
 			loader={
 				<div
 					className="flex justify-center align-center w-100"

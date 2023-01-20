@@ -6,7 +6,9 @@ import { AuthContext } from "./AuthContextProvider";
 export const PlaylistsContext = React.createContext(null);
 
 const PlaylistsContextProvider = ({ children }) => {
-	const [isLoading, setIsLoading] = React.useState(false);
+	const [isFetchingPlaylists, setIsFetchingPlaylists] = React.useState(false);
+	const [isFetchingPlaylistItems, setIsFetchingPlaylistItems] =
+		React.useState(false);
 	const [playlists, setPlaylists] = React.useState(
 		Object.keys(LibraryTabOptions).reduce((acc, key) => {
 			acc[LibraryTabOptions[key].value] = null;
@@ -20,7 +22,7 @@ const PlaylistsContextProvider = ({ children }) => {
 
 	const fetchSpotifyPlaylists = async () => {
 		try {
-			setIsLoading(true);
+			setIsFetchingPlaylists(true);
 			const fetchPlaylists =
 				fetchNextSpotifyPlaylists || SpotifyService.fetchUserPlaylists;
 
@@ -32,22 +34,74 @@ const PlaylistsContextProvider = ({ children }) => {
 
 			setPlaylists((prevPlaylists) => ({
 				...prevPlaylists,
-				[LibraryTabOptions.Spotify.value]: [
-					...(prevPlaylists[LibraryTabOptions.Spotify.value] || []),
+				[LibraryTabOptions.Spotify.value]: {
+					...(prevPlaylists[LibraryTabOptions.Spotify.value] || {}),
 					...newPlaylists,
-				],
+				},
 			}));
 		} catch (error) {
 			console.log(error);
 
 			setPlaylists((prevPlaylists) => ({
 				...prevPlaylists,
-				[LibraryTabOptions.Spotify.value]: [
-					...(prevPlaylists[LibraryTabOptions.Spotify.value] || []),
-				],
+				[LibraryTabOptions.Spotify.value]: {
+					...(prevPlaylists[LibraryTabOptions.Spotify.value] || {}),
+				},
 			}));
 		} finally {
-			setIsLoading(false);
+			setIsFetchingPlaylists(false);
+		}
+	};
+
+	const fetchSpotifyPlaylistItems = async (playlistId) => {
+		try {
+			const playlist = playlists[LibraryTabOptions.Spotify.value]?.[playlistId];
+
+			if (!playlist?.tracks?.items) {
+				// should only be true on first fetch
+				setIsFetchingPlaylistItems(true);
+			}
+
+			const fetchPlaylistItems =
+				playlist.fetchNext || SpotifyService.fetchPlaylistItems;
+
+			const { playlistItems: newPlaylistItems, fetchNext } =
+				await fetchPlaylistItems(spotifyCredentials, playlistId);
+
+			setPlaylists({
+				...playlists,
+				[LibraryTabOptions.Spotify.value]: {
+					...(playlists[LibraryTabOptions.Spotify.value] || {}),
+					[playlistId]: {
+						...(playlist || {}),
+						fetchNext,
+						tracks: {
+							items: [...(playlist?.tracks?.items || []), ...newPlaylistItems],
+						},
+					},
+				},
+			});
+		} catch (error) {
+			console.log(error);
+
+			setPlaylists((prevPlaylists) => ({
+				...prevPlaylists,
+				[LibraryTabOptions.Spotify.value]: {
+					...(prevPlaylists[LibraryTabOptions.Spotify.value] || {}),
+					[playlistId]: {
+						...(prevPlaylists[LibraryTabOptions.Spotify.value]?.[playlistId] ||
+							{}),
+						tracks: {
+							items: [
+								...(prevPlaylists[LibraryTabOptions.Spotify.value]?.[playlistId]
+									?.tracks?.items || []),
+							],
+						},
+					},
+				},
+			}));
+		} finally {
+			setIsFetchingPlaylistItems(false);
 		}
 	};
 
@@ -56,8 +110,10 @@ const PlaylistsContextProvider = ({ children }) => {
 			value={{
 				playlists,
 				fetchSpotifyPlaylists,
-				isLoading,
-				hasMore: !!fetchNextSpotifyPlaylists,
+				fetchSpotifyPlaylistItems,
+				isFetchingPlaylists,
+				isFetchingPlaylistItems,
+				hasMorePlaylists: !!fetchNextSpotifyPlaylists,
 			}}
 		>
 			{children}

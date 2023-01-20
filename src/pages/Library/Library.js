@@ -1,26 +1,61 @@
 import { Radio } from "antd";
 import React from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import LibraryTabOptions from "./libraryTabOptions";
-import SpotifyPlaylists from "./SpotifyPlaylists/SpotifyPlaylists";
 
 const Library = () => {
 	const [libraryTab, setLibraryTab] = React.useState(
 		LibraryTabOptions.Spotify.value
 	);
 
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	React.useEffect(() => {
+		const pathTab = Object.values(LibraryTabOptions).find((tab) =>
+			location.pathname.includes(tab.route)
+		);
+
+		if (!pathTab) {
+			const tabRoute = Object.values(LibraryTabOptions).find(
+				(tab) => tab.value === libraryTab
+			)?.route;
+
+			if (tabRoute) {
+				navigate(tabRoute);
+			}
+
+			return;
+		}
+
+		setLibraryTab((prevTab) => {
+			if (pathTab && pathTab.value !== prevTab) {
+				return pathTab.value;
+			}
+			return prevTab;
+		});
+	}, [location.pathname, libraryTab, navigate]);
+
 	return (
 		<section>
 			<h1>Library</h1>
 			<div>
 				<Radio.Group
-					options={Object.values(LibraryTabOptions)}
 					onChange={(e) => setLibraryTab(e.target.value)}
 					value={libraryTab}
 					optionType="button"
 					buttonStyle="solid"
-				/>
+				>
+					{Object.values(LibraryTabOptions).map((tab) => (
+						<Link to={tab.route} key={tab.value}>
+							<Radio.Button value={tab.value}>{tab.label}</Radio.Button>
+						</Link>
+					))}
+				</Radio.Group>
 
-				{libraryTab === LibraryTabOptions.Spotify.value && <SpotifyPlaylists />}
+				{/*  */}
+
+				<Outlet />
 			</div>
 		</section>
 	);

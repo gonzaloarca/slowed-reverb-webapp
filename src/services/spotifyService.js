@@ -32,9 +32,12 @@ const fetchUserPlaylists = async (credentials, offset = null, limit = null) => {
 	const userPlaylistsRes = await SpotifyApi.getUserPlaylists(paginationOptions);
 	console.log(userPlaylistsRes);
 
-	const userPlaylists = userPlaylistsRes.body.items.map((playlist) =>
-		translateSpotifyApiPlaylistToLocal(playlist)
-	);
+	const userPlaylistsById = userPlaylistsRes.body.items
+		.map((playlist) => translateSpotifyApiPlaylistToLocal(playlist))
+		.reduce((acc, playlist) => {
+			acc[playlist.id] = playlist;
+			return acc;
+		}, {});
 
 	// parse next offset and limit from next URL's query params
 	let nextOffset = null;
@@ -50,7 +53,7 @@ const fetchUserPlaylists = async (credentials, offset = null, limit = null) => {
 	}
 
 	return {
-		playlists: userPlaylists,
+		playlists: userPlaylistsById,
 		fetchNext:
 			nextOffset && nextLimit
 				? (_credentials) =>
@@ -59,9 +62,50 @@ const fetchUserPlaylists = async (credentials, offset = null, limit = null) => {
 	};
 };
 
+const fetchPlaylistItems = async (
+	credentials,
+	playlistId,
+	offset = null,
+	limit = null
+) => {
+	await _setAccessToken(credentials);
+
+	let paginationOptions = offset && limit ? { offset, limit } : undefined;
+
+	const playlistItemsRes = await SpotifyApi.getPlaylistTracks(
+		playlistId,
+		paginationOptions
+	);
+
+	console.log(playlistItemsRes);
+
+	// parse next offset and limit from next URL's query params
+	let nextOffset = null;
+	let nextLimit = null;
+
+	if (playlistItemsRes.body.next) {
+		const nextUrl = new URL(playlistItemsRes.body.next);
+		const nextOffsetParam = nextUrl.searchParams.get("offset");
+		const nextLimitParam = nextUrl.searchParams.get("limit");
+
+		nextOffset = nextOffsetParam ? parseInt(nextOffsetParam) : null;
+		nextLimit = nextLimitParam ? parseInt(nextLimitParam) : null;
+	}
+
+	return {
+		playlistItems: playlistItemsRes.body.items,
+		fetchNext:
+			nextOffset && nextLimit
+				? (_credentials) =>
+						fetchPlaylistItems(_credentials, playlistId, nextOffset, nextLimit)
+				: null,
+	};
+};
+
 const SpotifyService = {
 	fetchUserPlaylists,
 	getCredentials,
+	fetchPlaylistItems,
 };
 
 export default SpotifyService;
