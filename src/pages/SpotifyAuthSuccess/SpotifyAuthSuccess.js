@@ -4,8 +4,6 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContextProvider";
-import SpotifyApi from "../../api/spotifyApi";
-import { SongDownloaderService } from "../../services/songDownloaderService";
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 

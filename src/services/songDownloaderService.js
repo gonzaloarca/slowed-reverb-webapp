@@ -90,9 +90,27 @@ const getSpotifyCredentials = async (code, state) => {
 	};
 };
 
+const refreshSpotifyCredentials = async (refreshToken) => {
+	const response = await songDownloaderApi.get("/auth/spotify/refresh", {
+		params: {
+			refresh_token: refreshToken,
+		},
+	});
+
+	const { access_token, expires_in } = response.data;
+
+	const expiresAt = new Date().getTime() + expires_in * 1000;
+
+	return {
+		accessToken: access_token,
+		expiresAt,
+	};
+};
+
 export const SongDownloaderService = {
 	downloadFromArtistAndTitle,
 	downloadFromSpotifyTrackId,
 	downloadFromYoutubeVideoId,
 	getSpotifyCredentials,
+	refreshSpotifyCredentials,
 };

@@ -1,11 +1,12 @@
-import { Button } from "antd";
+import { Button, Spin } from "antd";
 import React, { useMemo } from "react";
 import { AuthContext } from "../../../context/AuthContextProvider";
 import { PlaylistsContext } from "../../../context/PlaylistsContextProvider";
 import LibraryTabOptions from "../libraryTabOptions";
 
 const SpotifyPlaylists = () => {
-	const { spotifyCredentials } = React.useContext(AuthContext);
+	const { spotifyCredentials, isLoading: isAuthLoading } =
+		React.useContext(AuthContext);
 	const { playlists, fetchSpotifyPlaylists, isLoading } =
 		React.useContext(PlaylistsContext);
 	const spotifyPlaylists = useMemo(
@@ -27,7 +28,9 @@ const SpotifyPlaylists = () => {
 		spotifyCredentials,
 	]);
 
-	return !spotifyCredentials?.accessToken ? (
+	return isAuthLoading ? (
+		<Spin />
+	) : !spotifyCredentials?.accessToken ? (
 		<Button>
 			<a href="http://localhost:8000/auth/spotify">Login with Spotify</a>
 		</Button>
