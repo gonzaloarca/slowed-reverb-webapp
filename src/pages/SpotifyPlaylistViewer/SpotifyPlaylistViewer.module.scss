@@ -1,0 +1,11 @@
+.songItem {
+	&:hover {
+		background-color: #cdcdcd;
+		transition: background-color 0.2s ease-in-out;
+	}
+
+	&:active {
+		background-color: #bfbfbf;
+		transition: background-color 0.1s ease-in-out;
+	}
+}

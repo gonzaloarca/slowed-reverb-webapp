@@ -1,15 +1,28 @@
 import { songDownloaderApi } from "../api/songDownloaderApi";
+import { blobToArrayBuffer } from "../utils/blob";
 import { createTrack } from "../utils/tracks";
 
 const extractMetadata = (res) => {
+	console.log(res.headers);
 	const title = res.headers["x-title"];
 	const artist = res.headers["x-artist"];
 	const duration = res.headers["x-duration"];
 	const youtubeId = res.headers["x-youtube-id"];
-	const contentDisposition = res.headers["content-disposition"];
-	const fileName = contentDisposition?.split("filename=")[1];
+	const fileName = res.headers["x-file-name"];
 
 	return { title, artist, duration, youtubeId, fileName };
+};
+
+const createAudioFile = async (res) => {
+	// store the audio file as an arrayBuffer
+	console.log(typeof res.data);
+
+	const arrayBuffer = await blobToArrayBuffer(res.data);
+
+	return {
+		data: arrayBuffer,
+		type: res.headers["content-type"],
+	};
 };
 
 const downloadFromArtistAndTitle = async (artist, title) => {
@@ -28,7 +41,7 @@ const downloadFromArtistAndTitle = async (artist, title) => {
 
 	return createTrack({
 		...metadata,
-		audioBlob: response.data,
+		audioFile: await createAudioFile(response),
 	});
 };
 
@@ -39,9 +52,8 @@ const downloadFromSpotifyTrackId = async (trackId) => {
 		},
 		headers: {
 			"x-youtube-api-key": process.env.REACT_APP_YOUTUBE_API_KEY,
-			"x-spotify-client-id": process.env.REACT_APP_SPOTIFY_CLIENT_ID,
-			"x-spotify-client-secret": process.env.REACT_APP_SPOTIFY_CLIENT_SECRET,
 		},
+		responseType: "blob",
 	});
 
 	const metadata = extractMetadata(response);
@@ -49,7 +61,7 @@ const downloadFromSpotifyTrackId = async (trackId) => {
 	return createTrack({
 		...metadata,
 		spotifyId: trackId,
-		audioBlob: response.data,
+		audioFile: await createAudioFile(response),
 	});
 };
 
@@ -61,13 +73,14 @@ const downloadFromYoutubeVideoId = async (videoId) => {
 		headers: {
 			"x-youtube-api-key": process.env.REACT_APP_YOUTUBE_API_KEY,
 		},
+		responseType: "blob",
 	});
 
 	const metadata = extractMetadata(response);
 
 	return createTrack({
 		...metadata,
-		audioBlob: response.data,
+		audioFile: await createAudioFile(response),
 	});
 };
 

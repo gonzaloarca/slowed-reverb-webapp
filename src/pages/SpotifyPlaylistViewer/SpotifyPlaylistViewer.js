@@ -3,14 +3,17 @@ import React, { useMemo } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Link, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { PlayerContext } from "../../context/PlayerContextProvider";
 import { PlaylistsContext } from "../../context/PlaylistsContextProvider";
 import Routes from "../../routes/routes";
 import LibraryTabOptions from "../Library/libraryTabOptions";
+import style from "./SpotifyPlaylistViewer.module.scss";
 
 const SpotifyPlaylistViewer = () => {
 	const { playlistId } = useParams();
 	const { playlists, fetchSpotifyPlaylistItems, isFetchingPlaylistItems } =
 		React.useContext(PlaylistsContext);
+	const { selectSpotifyTrack } = React.useContext(PlayerContext);
 
 	const playlist = useMemo(
 		() => playlists[LibraryTabOptions.Spotify.value]?.[playlistId],
@@ -31,7 +34,7 @@ const SpotifyPlaylistViewer = () => {
 	return isFetchingPlaylistItems ? (
 		<LoadingSpinner />
 	) : (
-		<div>
+		<div className={style.container}>
 			<Breadcrumb>
 				<Breadcrumb.Item>
 					<Link to={Routes.Library}>Library</Link>
@@ -60,7 +63,11 @@ const SpotifyPlaylistViewer = () => {
 				<List
 					dataSource={playlist?.tracks?.items}
 					renderItem={(item) => (
-						<List.Item key={item.id}>
+						<List.Item
+							key={item.id}
+							className={style.songItem}
+							onClick={() => selectSpotifyTrack(item.track.id)}
+						>
 							<List.Item.Meta
 								title={item.track.name}
 								description={item.track.artists

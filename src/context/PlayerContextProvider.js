@@ -7,7 +7,8 @@ import { TracksContext } from "./TracksContextProvider";
 export const PlayerContext = React.createContext(null);
 
 const PlayerContextProvider = ({ children }) => {
-	const { tracksById, getTrackFromYoutubeId } = React.useContext(TracksContext);
+	const { tracksById, getTrackFromYoutubeId, getTrackFromSpotifyId } =
+		React.useContext(TracksContext);
 	const { pollTrackQueue, addToTrackQueue } =
 		React.useContext(TrackQueueContext);
 	const { addToTrackHistory, popFromTrackHistory } =
@@ -25,14 +26,35 @@ const PlayerContextProvider = ({ children }) => {
 		}));
 	};
 
+	const selectSpotifyTrack = (spotifyId) => {
+		// find youtube ID from spotify ID
+		const track = Object.values(tracksById).find(
+			(track) => track.spotifyId === spotifyId
+		);
+
+		if (track) {
+			handlePlay(track);
+		} else {
+			setIsLoading(true);
+
+			getTrackFromSpotifyId(spotifyId)
+				.then((track) => {
+					handlePlay(track);
+				})
+				.finally(() => {
+					setIsLoading(false);
+				});
+		}
+	};
+
 	const selectTrack = (trackId) => {
 		const track = tracksById[trackId];
 
 		if (!track) {
 			setIsLoading(true);
 			getTrackFromYoutubeId(trackId)
-				.then(() => {
-					handlePlay(tracksById[trackId]);
+				.then((track) => {
+					handlePlay(track);
 				})
 				.finally(() => {
 					setIsLoading(false);
@@ -98,7 +120,8 @@ const PlayerContextProvider = ({ children }) => {
 		<PlayerContext.Provider
 			value={{
 				player,
-				playTrack: selectTrack,
+				selectTrack,
+				selectSpotifyTrack,
 				pausePlayer,
 				skipToNextTrack,
 				skipToPreviousTrack,

@@ -6,9 +6,11 @@ import {
 } from "@ant-design/icons";
 import { Button } from "antd";
 import clsx from "clsx";
-import React from "react";
+import React, { useEffect } from "react";
 import { PlayerContext } from "../../context/PlayerContextProvider";
 import style from "./Player.module.scss";
+import { db } from "../../utils/db";
+import { arrayBufferToBlob } from "../../utils/blob";
 
 const Player = () => {
 	const {
@@ -20,6 +22,43 @@ const Player = () => {
 		skipToPreviousTrack,
 		seekTo,
 	} = React.useContext(PlayerContext);
+	const [audioSrc, setAudioSrc] = React.useState("");
+	const audioRef = React.useRef(null);
+
+	useEffect(() => {
+		(async () => {
+			if (player.currentTrackId) {
+				// get audioFile from indexedDB
+				const track = await db.tracks.get(player.currentTrackId);
+
+				console.log("track", track);
+
+				// create a blob url from the audioFile, which contains arrayBuffer and type
+				const blob = arrayBufferToBlob(
+					track.audioFile.data,
+					track.audioFile.type
+				);
+
+				console.log("file", blob);
+
+				const url = URL.createObjectURL(blob);
+
+				setAudioSrc(url);
+			}
+		})();
+	}, [player.currentTrackId]);
+
+	useEffect(() => {
+		if (audioRef.current) {
+			audioRef.current.currentTime = player.currentTime;
+		}
+
+		if (player.isPlaying && audioSrc) {
+			audioRef.current?.play();
+		} else {
+			audioRef.current?.pause();
+		}
+	}, [player, audioSrc]);
 
 	return (
 		<div className={style.playerContainer}>
@@ -55,6 +94,8 @@ const Player = () => {
 				>
 					<StepForwardFilled />
 				</Button>
+
+				<audio src={audioSrc} ref={audioRef} />
 			</div>
 		</div>
 	);

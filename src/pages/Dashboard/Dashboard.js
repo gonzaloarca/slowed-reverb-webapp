@@ -7,10 +7,12 @@ const Dashboard = () => {
 	const handleSubmit = async (values) => {
 		console.log(values);
 
-		const data = await SongDownloaderService.downloadFromArtistAndTitle(
+		const track = await SongDownloaderService.downloadFromArtistAndTitle(
 			values.artist,
 			values.title
 		);
+
+		const data = track.audioFile.blob;
 
 		const blobUrl = URL.createObjectURL(data);
 

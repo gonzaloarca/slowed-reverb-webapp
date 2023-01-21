@@ -5,7 +5,7 @@ export const createTrack = ({
 	album = null,
 	duration,
 	thumbnail = null,
-	audioBlob,
+	audioFile,
 	spotifyId = null,
 }) => ({
 	id: youtubeId,
@@ -14,6 +14,6 @@ export const createTrack = ({
 	album,
 	duration,
 	thumbnail,
-	audioBlob,
+	audioFile,
 	spotifyId,
 });

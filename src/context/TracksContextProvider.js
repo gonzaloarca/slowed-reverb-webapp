@@ -30,9 +30,11 @@ const TracksContextProvider = ({ children }) => {
 			setTracksById((tracksById) => ({
 				...tracksById,
 				[track?.id]: {
-					...omit(track, ["audioBlob"]),
+					...omit(track, ["audioFile"]),
 				},
 			}));
+
+			return track;
 		} catch (error) {
 			console.error(error);
 		} finally {
@@ -61,9 +63,11 @@ const TracksContextProvider = ({ children }) => {
 			setTracksById((tracksById) => ({
 				...tracksById,
 				[track?.id]: {
-					...omit(track, ["audioBlob"]),
+					...omit(track, ["audioFile"]),
 				},
 			}));
+
+			return track;
 		} catch (error) {
 			console.error(error);
 		} finally {
