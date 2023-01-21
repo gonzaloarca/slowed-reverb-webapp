@@ -1,50 +1,10 @@
-import { Button, Form, Input, InputNumber } from "antd";
 import React from "react";
-import * as Tone from "tone";
-import { SongDownloaderService } from "../../services/songDownloaderService";
 
 const Dashboard = () => {
-	const handleSubmit = async (values) => {
-		console.log(values);
-
-		const track = await SongDownloaderService.downloadFromArtistAndTitle(
-			values.artist,
-			values.title
-		);
-
-		const data = track.audioFile.blob;
-
-		const blobUrl = URL.createObjectURL(data);
-
-		// console.log(data);
-
-		const buffer = new Tone.Buffer(blobUrl, () => {
-			console.log("buffer loaded");
-			const buff = buffer.get();
-
-			const { slowedAmount, reverbAmount } = values;
-			const player = new Tone.Player(buff).toDestination();
-
-			// apply playback rate
-			player.playbackRate = 1 - slowedAmount;
-
-			// apply reverb
-			const reverb = new Tone.Reverb({
-				wet: parseFloat(reverbAmount),
-				decay: 4,
-				preDelay: 0.01,
-			}).toDestination();
-
-			player.connect(reverb);
-
-			player.start();
-		});
-	};
-
 	return (
 		<div>
 			Dashboard
-			<Form
+			{/* <Form
 				onFinish={handleSubmit}
 				initialValues={{
 					title: "",
@@ -120,7 +80,7 @@ const Dashboard = () => {
 				<Button type="primary" htmlType="submit">
 					Submit
 				</Button>
-			</Form>
+			</Form> */}
 		</div>
 	);
 };

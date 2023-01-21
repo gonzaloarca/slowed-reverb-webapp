@@ -4,64 +4,91 @@ import {
 	StepBackwardFilled,
 	StepForwardFilled,
 } from "@ant-design/icons";
-import { Button } from "antd";
+import { Button, Col, Row, Slider } from "antd";
 import clsx from "clsx";
 import React, { useEffect } from "react";
 import { PlayerContext } from "../../context/PlayerContextProvider";
 import style from "./Player.module.scss";
 import { db } from "../../utils/db";
 import { arrayBufferToBlob } from "../../utils/blob";
+import * as Tone from "tone";
 
 const Player = () => {
 	const {
 		player,
-		playTrack,
 		resumePlayer,
 		pausePlayer,
+		playTrack,
 		skipToNextTrack,
 		skipToPreviousTrack,
-		seekTo,
+		handleTrackProgress,
+		slowedAmount,
+		reverbAmount,
+		setSlowedAmount,
+		setReverbAmount,
+		toneRef,
+		reverbRef,
 	} = React.useContext(PlayerContext);
 	const [audioSrc, setAudioSrc] = React.useState("");
-	const audioRef = React.useRef(null);
+	const scheduleId = React.useRef(null);
 
 	useEffect(() => {
 		(async () => {
-			if (player.currentTrackId) {
-				// get audioFile from indexedDB
-				const track = await db.tracks.get(player.currentTrackId);
-
-				console.log("track", track);
-
-				// create a blob url from the audioFile, which contains arrayBuffer and type
-				const blob = arrayBufferToBlob(
-					track.audioFile.data,
-					track.audioFile.type
-				);
-
-				console.log("file", blob);
-
-				const url = URL.createObjectURL(blob);
-
-				setAudioSrc(url);
+			if (player.currentTrackId && toneRef.current) {
+				playTrack(player.currentTrackId);
 			}
 		})();
-	}, [player.currentTrackId]);
+	}, [player.currentTrackId, toneRef, playTrack]);
+
+	// useEffect(() => {
+	// 	if (audioSrc) {
+	// 		toneRef.current.load(audioSrc);
+	// 	}
+	// }, [audioSrc]);
 
 	useEffect(() => {
-		if (audioRef.current) {
-			audioRef.current.currentTime = player.currentTime;
+		if (!toneRef.current?.loaded) {
+			console.log("not loaded");
+			return;
 		}
-
-		if (player.isPlaying && audioSrc) {
-			audioRef.current?.play();
+		//
+		if (player.isPlaying) {
+			console.log("start");
+			Tone.Transport.start();
 		} else {
-			audioRef.current?.pause();
+			console.log("stop");
+			Tone.Transport.pause();
+
+			if (scheduleId.current) {
+				Tone.Transport.clear(scheduleId.current);
+			}
 		}
-	}, [player, audioSrc]);
+	}, [player.isPlaying, toneRef]);
+
+	useEffect(() => {
+		// apply playback rate
+		if (toneRef.current) {
+			toneRef.current.playbackRate = 1 - slowedAmount;
+		}
+	}, [slowedAmount, toneRef]);
+
+	useEffect(() => {
+		// apply reverb
+		if (reverbRef.current) {
+			reverbRef.current.decay = reverbAmount;
+		}
+	}, [reverbAmount, reverbRef]);
 
 	return (
 		<div className={style.playerContainer}>
+			<div>
+				{player.currentTrackId && (
+					<div className={style.trackInfo}>
+						Duration: {player.duration}
+						Current Time: {player.currentTime}
+					</div>
+				)}
+			</div>
 			<div className={style.playerButtons}>
 				<Button
 					type="text"
@@ -94,9 +121,34 @@ const Player = () => {
 				>
 					<StepForwardFilled />
 				</Button>
-
-				<audio src={audioSrc} ref={audioRef} />
 			</div>
+
+			<Row className={style.controlsContainer}>
+				<Col span={4}>Slowed</Col>
+				<Col span={20}>
+					<Slider
+						min={0}
+						max={1}
+						onChange={(value) => {
+							setSlowedAmount(value);
+						}}
+						value={slowedAmount}
+						step={0.05}
+					/>
+				</Col>
+				<Col span={4}>Reverb</Col>
+				<Col span={20}>
+					<Slider
+						min={0.01}
+						max={5}
+						onChange={(value) => {
+							setReverbAmount(value);
+						}}
+						value={reverbAmount}
+						step={0.05}
+					/>
+				</Col>
+			</Row>
 		</div>
 	);
 };
