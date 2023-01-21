@@ -69,7 +69,11 @@ const PlayerContextProvider = ({ children }) => {
 
 			console.log("url", url);
 
-			await toneRef.current.load(url);
+			// create buffer before loading
+			const buffer = await Tone.Buffer.fromUrl(url);
+
+			// set the buffer
+			toneRef.current.buffer.set(buffer);
 		},
 		[toneRef]
 	);
@@ -97,23 +101,35 @@ const PlayerContextProvider = ({ children }) => {
 			}
 
 			// then, clear the current track
+			Tone.Transport.stop();
 			toneRef.current.stop();
+			toneRef.current.buffer.dispose();
 
 			// load the new track
 			loadTrack(trackId).then(() => {
-				// then start the new track
-				toneRef.current.sync().start(0);
+				console.log("after load track", toneRef.current?.loaded);
 
-				setPlayer((player) => ({
-					...player,
-					currentTrackId: trackId,
-					currentTime: 0,
-					duration: 0,
-					isPlaying: true,
-				}));
+				if (toneRef.current?.loaded) {
+					// then start the new track
+					toneRef.current.sync().start(0);
+					Tone.Transport.start();
+
+					// set up Transport to update progress bar
+					scheduleId.current = Tone.Transport.scheduleRepeat(() => {
+						handleTrackProgress();
+					}, 1);
+				}
 			});
+
+			setPlayer((player) => ({
+				...player,
+				currentTrackId: trackId,
+				currentTime: 0,
+				duration: 0,
+				isPlaying: true,
+			}));
 		},
-		[toneContextCreated, toneRef, reverbRef, loadTrack]
+		[toneContextCreated, toneRef, reverbRef, loadTrack, handleTrackProgress]
 	);
 
 	const selectSpotifyTrack = useCallback(
@@ -161,7 +177,7 @@ const PlayerContextProvider = ({ children }) => {
 	);
 
 	const resumePlayer = useCallback(() => {
-		if (toneRef.current) {
+		if (toneRef.current?.loaded) {
 			Tone.Transport.start();
 		}
 
@@ -172,7 +188,7 @@ const PlayerContextProvider = ({ children }) => {
 	}, [toneRef]);
 
 	const pausePlayer = useCallback(() => {
-		if (toneRef.current) {
+		if (toneRef.current?.loaded) {
 			Tone.Transport.pause();
 		}
 
@@ -224,21 +240,6 @@ const PlayerContextProvider = ({ children }) => {
 			currentTime: time,
 		}));
 	}, []);
-
-	useEffect(() => {
-		if (!toneRef.current) {
-			return;
-		}
-
-		// set up Transport to update progress bar
-		scheduleId.current = Tone.Transport.scheduleRepeat(() => {
-			handleTrackProgress();
-		}, 1);
-
-		return () => {
-			Tone.Transport.clear(scheduleId.current);
-		};
-	}, [handleTrackProgress, toneRef]);
 
 	return (
 		<PlayerContext.Provider

@@ -9,19 +9,14 @@ import clsx from "clsx";
 import React, { useEffect } from "react";
 import { PlayerContext } from "../../context/PlayerContextProvider";
 import style from "./Player.module.scss";
-import { db } from "../../utils/db";
-import { arrayBufferToBlob } from "../../utils/blob";
-import * as Tone from "tone";
 
 const Player = () => {
 	const {
 		player,
 		resumePlayer,
 		pausePlayer,
-		playTrack,
 		skipToNextTrack,
 		skipToPreviousTrack,
-		handleTrackProgress,
 		slowedAmount,
 		reverbAmount,
 		setSlowedAmount,
@@ -29,41 +24,6 @@ const Player = () => {
 		toneRef,
 		reverbRef,
 	} = React.useContext(PlayerContext);
-	const [audioSrc, setAudioSrc] = React.useState("");
-	const scheduleId = React.useRef(null);
-
-	useEffect(() => {
-		(async () => {
-			if (player.currentTrackId && toneRef.current) {
-				playTrack(player.currentTrackId);
-			}
-		})();
-	}, [player.currentTrackId, toneRef, playTrack]);
-
-	// useEffect(() => {
-	// 	if (audioSrc) {
-	// 		toneRef.current.load(audioSrc);
-	// 	}
-	// }, [audioSrc]);
-
-	useEffect(() => {
-		if (!toneRef.current?.loaded) {
-			console.log("not loaded");
-			return;
-		}
-		//
-		if (player.isPlaying) {
-			console.log("start");
-			Tone.Transport.start();
-		} else {
-			console.log("stop");
-			Tone.Transport.pause();
-
-			if (scheduleId.current) {
-				Tone.Transport.clear(scheduleId.current);
-			}
-		}
-	}, [player.isPlaying, toneRef]);
 
 	useEffect(() => {
 		// apply playback rate
