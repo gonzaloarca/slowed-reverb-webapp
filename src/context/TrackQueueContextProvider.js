@@ -33,6 +33,7 @@ const TrackQueueContextProvider = ({ children }) => {
 		<TrackQueueContext.Provider
 			value={{
 				trackQueue,
+				setTrackQueue,
 				addToTrackQueue,
 				removeFromTrackQueue,
 				clearTrackQueue,

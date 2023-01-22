@@ -21,16 +21,8 @@ const Player = () => {
 		reverbAmount,
 		setSlowedAmount,
 		setReverbAmount,
-		toneRef,
 		reverbRef,
 	} = React.useContext(PlayerContext);
-
-	useEffect(() => {
-		// apply playback rate
-		if (toneRef.current) {
-			toneRef.current.playbackRate = 1 - slowedAmount;
-		}
-	}, [slowedAmount, toneRef]);
 
 	useEffect(() => {
 		// apply reverb
@@ -44,8 +36,8 @@ const Player = () => {
 			<div>
 				{player.currentTrackId && (
 					<div className={style.trackInfo}>
-						Duration: {player.duration}
-						Current Time: {player.currentTime}
+						Duration: {Math.floor(player.duration)}
+						Current Time: {Math.floor(player.currentTime)}
 					</div>
 				)}
 			</div>
