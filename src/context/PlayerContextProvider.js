@@ -11,6 +11,7 @@ import LibraryTabOptions from "../pages/Library/libraryTabOptions";
 import { createQueueTrack } from "../utils/queue";
 
 const TIME_UPDATE_INTERVAL = 0.1;
+const RESTART_TRACK_ON_PREVIOUS_THRESHOLD = 3;
 
 export const PlayerContext = React.createContext(null);
 
@@ -19,7 +20,7 @@ const PlayerContextProvider = ({ children }) => {
 		React.useContext(TracksContext);
 	const { pollTrackQueue, addToTrackQueue, setTrackQueue } =
 		React.useContext(TrackQueueContext);
-	const { addToTrackHistory, popFromTrackHistory } =
+	const { pushToTrackHistory, popFromTrackHistory, setTrackHistory } =
 		React.useContext(TrackHistoryContext);
 	const { playlists } = React.useContext(PlaylistsContext);
 	const [slowedAmount, setSlowedAmount] = React.useState(0);
@@ -178,11 +179,10 @@ const PlayerContextProvider = ({ children }) => {
 						isPausedRef.current
 					);
 					if (!isPausedRef.current) {
-						handleTrackEnd();
+						skipToNextTrack();
 						console.log("onend!!!!");
 					}
 					console.log("onstop!!!!");
-					// handleTrackEnd();
 				};
 
 				Tone.Transport.start();
@@ -231,12 +231,25 @@ const PlayerContextProvider = ({ children }) => {
 	}
 
 	function selectSpotifyTrackFromPlaylist(spotifyId, playlistId) {
+		debugger;
 		// set queue to tracks from playlist
-		setTrackQueue(
-			spotifyPlaylistsById[playlistId].tracks.items?.map((trackItem) =>
-				createQueueTrack({ spotifyId: trackItem.track.id })
-			)
+		const playlistItems = spotifyPlaylistsById[playlistId]?.tracks?.items?.map(
+			(trackItem) =>
+				createQueueTrack({
+					spotifyId: trackItem.track.id,
+				})
 		);
+
+		// split into history and queue, based on current track
+		const trackIndex = playlistItems.findIndex(
+			(trackItem) => trackItem.spotifyId === spotifyId
+		);
+
+		const history = playlistItems.slice(0, trackIndex);
+		const queue = playlistItems.slice(trackIndex + 1);
+
+		setTrackQueue(queue);
+		setTrackHistory(history);
 
 		selectSpotifyTrack(spotifyId);
 	}
@@ -267,20 +280,37 @@ const PlayerContextProvider = ({ children }) => {
 
 	function skipToNextTrack() {
 		const currentTrackId = player.currentTrackId;
+		const track = tracksById[currentTrackId];
 
 		if (currentTrackId) {
-			addToTrackHistory(currentTrackId);
+			pushToTrackHistory(
+				createQueueTrack({
+					youtubeId: currentTrackId,
+					spotifyId: track.spotifyId,
+				})
+			);
 		}
 
 		handleTrackEnd();
 	}
 
 	function skipToPreviousTrack() {
-		const previousTrackId = popFromTrackHistory();
+		// if we're out of the first N seconds, restart the current track
+		if (Tone.Transport.seconds > RESTART_TRACK_ON_PREVIOUS_THRESHOLD) {
+			playTrack(player.currentTrackId);
+			return;
+		}
 
-		if (previousTrackId) {
-			addToTrackQueue(player.currentTrackId);
-			selectTrack(previousTrackId);
+		const previousTrack = popFromTrackHistory();
+
+		if (previousTrack) {
+			addToTrackQueue([previousTrack]);
+
+			if (previousTrack.id) {
+				selectTrack(previousTrack.id);
+			} else if (previousTrack.spotifyId) {
+				selectSpotifyTrack(previousTrack.spotifyId);
+			}
 		}
 	}
 
@@ -306,6 +336,7 @@ const PlayerContextProvider = ({ children }) => {
 				playTrack,
 				selectTrack,
 				selectSpotifyTrack,
+				selectSpotifyTrackFromPlaylist,
 				pausePlayer,
 				skipToNextTrack,
 				skipToPreviousTrack,

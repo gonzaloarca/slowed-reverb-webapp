@@ -31,6 +31,7 @@ const TrackHistoryContextProvider = ({ children }) => {
 				pushToTrackHistory,
 				clearTrackHistory,
 				popFromTrackHistory,
+				setTrackHistory,
 			}}
 		>
 			{children}

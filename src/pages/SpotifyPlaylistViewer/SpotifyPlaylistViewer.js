@@ -13,7 +13,8 @@ const SpotifyPlaylistViewer = () => {
 	const { playlistId } = useParams();
 	const { playlists, fetchSpotifyPlaylistItems, isFetchingPlaylistItems } =
 		React.useContext(PlaylistsContext);
-	const { selectSpotifyTrack } = React.useContext(PlayerContext);
+	const { selectSpotifyTrack, selectSpotifyTrackFromPlaylist } =
+		React.useContext(PlayerContext);
 
 	const playlist = useMemo(
 		() => playlists[LibraryTabOptions.Spotify.value]?.[playlistId],
@@ -66,7 +67,9 @@ const SpotifyPlaylistViewer = () => {
 						<List.Item
 							key={item.id}
 							className={style.songItem}
-							onClick={() => selectSpotifyTrack(item.track.id)}
+							onClick={() =>
+								selectSpotifyTrackFromPlaylist(item.track.id, playlistId)
+							}
 						>
 							<List.Item.Meta
 								title={item.track.name}
