@@ -9,6 +9,7 @@ import clsx from "clsx";
 import React, { useEffect } from "react";
 import { PlayerContext } from "../../context/PlayerContextProvider";
 import style from "./Player.module.scss";
+import { BsShuffle } from "react-icons/bs";
 
 const Player = () => {
 	const {
@@ -22,6 +23,7 @@ const Player = () => {
 		setSlowedAmount,
 		setReverbAmount,
 		reverbRef,
+		toggleShuffle,
 	} = React.useContext(PlayerContext);
 
 	useEffect(() => {
@@ -74,6 +76,16 @@ const Player = () => {
 					<StepForwardFilled />
 				</Button>
 			</div>
+
+			<Button
+				type="text"
+				shape="circle"
+				onClick={toggleShuffle}
+				size="large"
+				className="flex justify-center align-center"
+			>
+				<BsShuffle color={player.shuffle ? "green" : "black"} size="1.25rem" />
+			</Button>
 
 			<Row className={style.controlsContainer}>
 				<Col span={4}>Slowed</Col>

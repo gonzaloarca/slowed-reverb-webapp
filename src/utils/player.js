@@ -5,4 +5,5 @@ export const createPlayer = () => ({
 	isPlaying: false,
 	isMuted: false,
 	volume: 1,
+	shuffle: false,
 });

@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useCallback } from "react";
+import { shuffle as shuffleArray } from "lodash";
 
 export const TrackListContext = React.createContext(null);
 
 const TrackListContextProvider = ({ children }) => {
 	const [trackList, setTrackList] = React.useState([]);
 	const [currentTrackIndex, setCurrentTrackIndex] = React.useState(0);
+	const originalTrackList = React.useRef([]);
 
 	const addToTrackList = (tracks) => {
 		setTrackList((oldTracks) => {
@@ -57,11 +59,68 @@ const TrackListContextProvider = ({ children }) => {
 		return previousTrack;
 	};
 
+	const shuffleTrackList = useCallback(
+		(fromTrackIndex = null) => {
+			let trackIndex = currentTrackIndex;
+
+			if (fromTrackIndex !== null) {
+				trackIndex = fromTrackIndex;
+			}
+
+			// remove current track from track list, shuffle, then add current track back in
+			setTrackList((oldTracks) => {
+				const currentTrack = oldTracks[trackIndex];
+
+				// remove current track from track list
+				let newTrackList = oldTracks.filter((_, index) => index !== trackIndex);
+
+				// shuffle track list
+				newTrackList = shuffleArray(newTrackList);
+
+				// add current track back in
+				newTrackList = [currentTrack, ...newTrackList];
+
+				setCurrentTrackIndex(0);
+
+				return newTrackList;
+			});
+		},
+		[currentTrackIndex]
+	);
+
+	const unshuffleTrackList = useCallback(() => {
+		setTrackList((oldTracks) => {
+			const currentTrack = oldTracks[currentTrackIndex];
+
+			// find index of current track in original track list
+			const originalTrackIndex = originalTrackList.current.findIndex(
+				(track) =>
+					track.id === currentTrack.id ||
+					track.spotifyId === currentTrack.spotifyId
+			);
+
+			setCurrentTrackIndex(originalTrackIndex);
+
+			return originalTrackList.current;
+		});
+	}, [currentTrackIndex]);
+
+	const _setTrackList = (newTrackList, fromTrackIndex, shuffle = false) => {
+		originalTrackList.current = newTrackList;
+
+		setTrackList(newTrackList);
+		setCurrentTrackIndex(fromTrackIndex);
+
+		if (shuffle) {
+			shuffleTrackList(fromTrackIndex);
+		}
+	};
+
 	return (
 		<TrackListContext.Provider
 			value={{
 				trackList,
-				setTrackList,
+				setTrackList: _setTrackList,
 				addToTrackList,
 				addToTrackListAt,
 				removeFromTrackList,
@@ -70,6 +129,8 @@ const TrackListContextProvider = ({ children }) => {
 				setCurrentTrackIndex,
 				playNextTrackInList,
 				playPreviousTrackInList,
+				shuffleTrackList,
+				unshuffleTrackList,
 			}}
 		>
 			{children}

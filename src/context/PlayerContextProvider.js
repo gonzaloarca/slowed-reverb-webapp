@@ -8,6 +8,7 @@ import { arrayBufferToBlob } from "../utils/blob";
 import { PlaylistsContext } from "./PlaylistsContextProvider";
 import LibraryTabOptions from "../pages/Library/libraryTabOptions";
 import { createTrack } from "../utils/tracklist";
+import { shuffle as shuffleArray } from "lodash";
 
 const TIME_UPDATE_INTERVAL = 0.1;
 const RESTART_TRACK_ON_PREVIOUS_THRESHOLD = 3;
@@ -22,6 +23,8 @@ const PlayerContextProvider = ({ children }) => {
 		playPreviousTrackInList,
 		setCurrentTrackIndex,
 		setTrackList,
+		shuffleTrackList,
+		unshuffleTrackList,
 	} = React.useContext(TrackListContext);
 	const { playlists } = React.useContext(PlaylistsContext);
 	const [slowedAmount, setSlowedAmount] = React.useState(0);
@@ -239,7 +242,7 @@ const PlayerContextProvider = ({ children }) => {
 
 	function selectSpotifyTrackFromPlaylist(spotifyId, playlistId) {
 		// set queue to tracks from playlist
-		const playlistItems = spotifyPlaylistsById[playlistId]?.tracks?.items?.map(
+		let playlistItems = spotifyPlaylistsById[playlistId]?.tracks?.items?.map(
 			(trackItem) =>
 				createTrack({
 					spotifyId: trackItem.track.id,
@@ -250,8 +253,7 @@ const PlayerContextProvider = ({ children }) => {
 			(trackItem) => trackItem.spotifyId === spotifyId
 		);
 
-		setTrackList(playlistItems);
-		setCurrentTrackIndex(trackIndex);
+		setTrackList(playlistItems, trackIndex, player.shuffle);
 
 		selectSpotifyTrack(spotifyId);
 	}
@@ -302,6 +304,23 @@ const PlayerContextProvider = ({ children }) => {
 		}
 	}
 
+	const toggleShuffle = useCallback(() => {
+		setPlayer((player) => {
+			const shuffle = !player.shuffle;
+
+			if (shuffle) {
+				shuffleTrackList();
+			} else {
+				unshuffleTrackList();
+			}
+
+			return {
+				...player,
+				shuffle,
+			};
+		});
+	}, [shuffleTrackList, unshuffleTrackList]);
+
 	const seekTo = useCallback((time) => {
 		setPlayer((player) => ({
 			...player,
@@ -339,6 +358,7 @@ const PlayerContextProvider = ({ children }) => {
 				reverbRef,
 				toneRef,
 				createToneContext,
+				toggleShuffle,
 			}}
 		>
 			{children}
