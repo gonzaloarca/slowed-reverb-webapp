@@ -62,11 +62,8 @@ const PlaylistsContextProvider = ({ children }) => {
 				setIsFetchingPlaylistItems(true);
 			}
 
-			const fetchPlaylistItems =
-				playlist.fetchNext || SpotifyService.fetchPlaylistItems;
-
-			const { playlistItems: newPlaylistItems, fetchNext } =
-				await fetchPlaylistItems(spotifyCredentials, playlistId);
+			const { playlistItems: newPlaylistItems } =
+				await SpotifyService.fetchPlaylistItems(spotifyCredentials, playlistId);
 
 			setPlaylists({
 				...playlists,
@@ -74,7 +71,6 @@ const PlaylistsContextProvider = ({ children }) => {
 					...(playlists[LibraryTabOptions.Spotify.value] || {}),
 					[playlistId]: {
 						...(playlist || {}),
-						fetchNext,
 						tracks: {
 							items: [...(playlist?.tracks?.items || []), ...newPlaylistItems],
 						},

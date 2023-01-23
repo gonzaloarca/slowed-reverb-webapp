@@ -45,42 +45,25 @@ const SpotifyPlaylistViewer = () => {
 				</Breadcrumb.Item>
 				<Breadcrumb.Item>{playlist?.name}</Breadcrumb.Item>
 			</Breadcrumb>
-			<InfiniteScroll
-				dataLength={playlist?.tracks?.items?.length || 0}
-				next={() => fetchSpotifyPlaylistItems(playlistId)}
-				hasMore={!!playlist?.fetchNext}
-				loader={
-					<div
-						className="flex justify-center align-center w-100"
-						style={{
-							height: "5vh",
-						}}
+			<List
+				dataSource={playlist?.tracks?.items}
+				renderItem={(item) => (
+					<List.Item
+						key={item.id}
+						className={style.songItem}
+						onClick={() =>
+							selectSpotifyTrackFromPlaylist(item.track.id, playlistId)
+						}
 					>
-						<LoadingSpinner />
-					</div>
-				}
-				scrollableTarget="layout-content"
-			>
-				<List
-					dataSource={playlist?.tracks?.items}
-					renderItem={(item) => (
-						<List.Item
-							key={item.id}
-							className={style.songItem}
-							onClick={() =>
-								selectSpotifyTrackFromPlaylist(item.track.id, playlistId)
-							}
-						>
-							<List.Item.Meta
-								title={item.track.name}
-								description={item.track.artists
-									.map((artist) => artist.name)
-									.join(", ")}
-							/>
-						</List.Item>
-					)}
-				/>
-			</InfiniteScroll>
+						<List.Item.Meta
+							title={item.track.name}
+							description={item.track.artists
+								.map((artist) => artist.name)
+								.join(", ")}
+						/>
+					</List.Item>
+				)}
+			/>
 		</div>
 	);
 };

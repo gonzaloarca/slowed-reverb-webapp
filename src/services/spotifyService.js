@@ -62,43 +62,42 @@ const fetchUserPlaylists = async (credentials, offset = null, limit = null) => {
 	};
 };
 
-const fetchPlaylistItems = async (
-	credentials,
-	playlistId,
-	offset = null,
-	limit = null
-) => {
+const fetchPlaylistItems = async (credentials, playlistId) => {
 	await _setAccessToken(credentials);
 
-	let paginationOptions = offset && limit ? { offset, limit } : undefined;
+	const playlistItems = [];
 
-	const playlistItemsRes = await SpotifyApi.getPlaylistTracks(
-		playlistId,
-		paginationOptions
-	);
+	const playlistItemsRes = await SpotifyApi.getPlaylistTracks(playlistId);
+
+	playlistItems.push(...playlistItemsRes.body.items);
 
 	console.log(playlistItemsRes);
 
-	// parse next offset and limit from next URL's query params
-	let nextOffset = null;
-	let nextLimit = null;
+	let nextLink = playlistItemsRes.body.next;
 
-	if (playlistItemsRes.body.next) {
-		const nextUrl = new URL(playlistItemsRes.body.next);
+	while (nextLink) {
+		const nextUrl = new URL(nextLink);
 		const nextOffsetParam = nextUrl.searchParams.get("offset");
 		const nextLimitParam = nextUrl.searchParams.get("limit");
 
-		nextOffset = nextOffsetParam ? parseInt(nextOffsetParam) : null;
-		nextLimit = nextLimitParam ? parseInt(nextLimitParam) : null;
+		const nextOffset = nextOffsetParam ? parseInt(nextOffsetParam) : null;
+		const nextLimit = nextLimitParam ? parseInt(nextLimitParam) : null;
+
+		const nextPlaylistItemsRes = await SpotifyApi.getPlaylistTracks(
+			playlistId,
+			{
+				offset: nextOffset,
+				limit: nextLimit,
+			}
+		);
+
+		playlistItems.push(...nextPlaylistItemsRes.body.items);
+
+		nextLink = nextPlaylistItemsRes.body.next;
 	}
 
 	return {
-		playlistItems: playlistItemsRes.body.items,
-		fetchNext:
-			nextOffset && nextLimit
-				? (_credentials) =>
-						fetchPlaylistItems(_credentials, playlistId, nextOffset, nextLimit)
-				: null,
+		playlistItems,
 	};
 };
 
