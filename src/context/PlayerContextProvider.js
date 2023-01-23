@@ -205,6 +205,8 @@ const PlayerContextProvider = ({ children }) => {
 
 				// save timestamp for computing track progress
 				lastTimeUpdate.current = 0;
+
+				isPausedRef.current = false;
 			}
 		});
 
