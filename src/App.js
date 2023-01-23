@@ -4,8 +4,7 @@ import "./App.css";
 import AppRouter from "./routes/AppRouter";
 import "antd/dist/reset.css";
 import TracksContextProvider from "./context/TracksContextProvider";
-import TrackQueueContextProvider from "./context/TrackQueueContextProvider";
-import TrackHistoryContextProvider from "./context/TrackHistoryContextProvider";
+import TrackListContextProvider from "./context/TrackListContextProvider";
 import PlayerContextProvider from "./context/PlayerContextProvider";
 import PlaylistsContextProvider from "./context/PlaylistsContextProvider";
 import AuthContextProvider from "./context/AuthContextProvider";
@@ -15,13 +14,11 @@ function App() {
 		<AuthContextProvider>
 			<PlaylistsContextProvider>
 				<TracksContextProvider>
-					<TrackQueueContextProvider>
-						<TrackHistoryContextProvider>
-							<PlayerContextProvider>
-								<RouterProvider router={AppRouter} />
-							</PlayerContextProvider>
-						</TrackHistoryContextProvider>
-					</TrackQueueContextProvider>
+					<TrackListContextProvider>
+						<PlayerContextProvider>
+							<RouterProvider router={AppRouter} />
+						</PlayerContextProvider>
+					</TrackListContextProvider>
 				</TracksContextProvider>
 			</PlaylistsContextProvider>
 		</AuthContextProvider>

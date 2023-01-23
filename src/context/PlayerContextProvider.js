@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import { createPlayer } from "../utils/player";
-import { TrackHistoryContext } from "./TrackHistoryContextProvider";
-import { TrackQueueContext } from "./TrackQueueContextProvider";
+import { TrackListContext } from "./TrackListContextProvider";
 import { TracksContext } from "./TracksContextProvider";
 import * as Tone from "tone";
 import { db } from "../utils/db";
 import { arrayBufferToBlob } from "../utils/blob";
 import { PlaylistsContext } from "./PlaylistsContextProvider";
 import LibraryTabOptions from "../pages/Library/libraryTabOptions";
-import { createQueueTrack } from "../utils/queue";
+import { createTrack } from "../utils/tracklist";
 
 const TIME_UPDATE_INTERVAL = 0.1;
 const RESTART_TRACK_ON_PREVIOUS_THRESHOLD = 3;
@@ -18,10 +17,12 @@ export const PlayerContext = React.createContext(null);
 const PlayerContextProvider = ({ children }) => {
 	const { tracksById, getTrackFromYoutubeId, getTrackFromSpotifyId } =
 		React.useContext(TracksContext);
-	const { pollTrackQueue, addToTrackQueue, setTrackQueue } =
-		React.useContext(TrackQueueContext);
-	const { pushToTrackHistory, popFromTrackHistory, setTrackHistory } =
-		React.useContext(TrackHistoryContext);
+	const {
+		playNextTrackInList,
+		playPreviousTrackInList,
+		setCurrentTrackIndex,
+		setTrackList,
+	} = React.useContext(TrackListContext);
 	const { playlists } = React.useContext(PlaylistsContext);
 	const [slowedAmount, setSlowedAmount] = React.useState(0);
 	const [reverbAmount, setReverbAmount] = React.useState(0.01);
@@ -117,7 +118,7 @@ const PlayerContextProvider = ({ children }) => {
 	}
 
 	function handleTrackEnd() {
-		const nextTrack = pollTrackQueue();
+		const nextTrack = playNextTrackInList();
 
 		if (nextTrack) {
 			if (nextTrack.id) {
@@ -137,26 +138,52 @@ const PlayerContextProvider = ({ children }) => {
 			return;
 		}
 
-		if (!toneRef.current) {
-			toneRef.current = new Tone.Player();
-			reverbRef.current = new Tone.Reverb({
-				wet: 0.5,
-			});
-
-			toneRef.current.connect(reverbRef.current);
-
-			reverbRef.current.toDestination();
-		}
-
 		// first, clear any existing schedule
 		if (scheduleId.current) {
 			Tone.Transport.clear(scheduleId.current);
 		}
 
-		// then, clear the current track
 		Tone.Transport.stop();
-		isPausedRef.current = true; // just for initialization
-		toneRef.current.buffer.dispose();
+		// reset toneRef
+		if (toneRef.current) {
+			toneRef.current.dispose();
+		}
+
+		if (!reverbRef.current) {
+			reverbRef.current = new Tone.Reverb({
+				wet: 0.5,
+			});
+		}
+
+		toneRef.current = new Tone.Player({
+			playbackRate: 1 - slowedAmount,
+		});
+
+		toneRef.current.connect(reverbRef.current);
+
+		reverbRef.current.toDestination();
+
+		toneRef.current.onstop = (source) => {
+			console.log(toneRef.current._activeSources, "active sources");
+			console.log(source);
+			const time = currentTimeRef.current;
+			const duration = toneRef.current?.buffer?.duration;
+			console.log(
+				"onstop time",
+				time,
+				"duration",
+				duration,
+				"paused",
+				isPausedRef.current
+			);
+			if (!isPausedRef.current) {
+				skipToNextTrack();
+				console.log("onend!!!!");
+			}
+			console.log("onstop!!!!");
+		};
+
+		// isPausedRef.current = true; // just for initialization
 
 		// load the new track
 		loadTrack(trackId).then(() => {
@@ -166,27 +193,7 @@ const PlayerContextProvider = ({ children }) => {
 				// then start the new track
 				toneRef.current.sync().start(0);
 
-				toneRef.current.onstop = (source) => {
-					console.log(source);
-					const time = currentTimeRef.current;
-					const duration = toneRef.current?.buffer?.duration;
-					console.log(
-						"onstop time",
-						time,
-						"duration",
-						duration,
-						"paused",
-						isPausedRef.current
-					);
-					if (!isPausedRef.current) {
-						skipToNextTrack();
-						console.log("onend!!!!");
-					}
-					console.log("onstop!!!!");
-				};
-
 				Tone.Transport.start();
-				isPausedRef.current = false;
 
 				// set up Transport to update progress bar
 				scheduleId.current = Tone.Transport.scheduleRepeat(() => {
@@ -231,25 +238,20 @@ const PlayerContextProvider = ({ children }) => {
 	}
 
 	function selectSpotifyTrackFromPlaylist(spotifyId, playlistId) {
-		debugger;
 		// set queue to tracks from playlist
 		const playlistItems = spotifyPlaylistsById[playlistId]?.tracks?.items?.map(
 			(trackItem) =>
-				createQueueTrack({
+				createTrack({
 					spotifyId: trackItem.track.id,
 				})
 		);
 
-		// split into history and queue, based on current track
 		const trackIndex = playlistItems.findIndex(
 			(trackItem) => trackItem.spotifyId === spotifyId
 		);
 
-		const history = playlistItems.slice(0, trackIndex);
-		const queue = playlistItems.slice(trackIndex + 1);
-
-		setTrackQueue(queue);
-		setTrackHistory(history);
+		setTrackList(playlistItems);
+		setCurrentTrackIndex(trackIndex);
 
 		selectSpotifyTrack(spotifyId);
 	}
@@ -268,8 +270,8 @@ const PlayerContextProvider = ({ children }) => {
 
 	function pausePlayer() {
 		if (toneRef.current?.loaded) {
-			Tone.Transport.pause();
 			isPausedRef.current = true;
+			Tone.Transport.pause();
 		}
 
 		setPlayer((player) => ({
@@ -279,18 +281,6 @@ const PlayerContextProvider = ({ children }) => {
 	}
 
 	function skipToNextTrack() {
-		const currentTrackId = player.currentTrackId;
-		const track = tracksById[currentTrackId];
-
-		if (currentTrackId) {
-			pushToTrackHistory(
-				createQueueTrack({
-					youtubeId: currentTrackId,
-					spotifyId: track.spotifyId,
-				})
-			);
-		}
-
 		handleTrackEnd();
 	}
 
@@ -301,11 +291,9 @@ const PlayerContextProvider = ({ children }) => {
 			return;
 		}
 
-		const previousTrack = popFromTrackHistory();
+		const previousTrack = playPreviousTrackInList();
 
 		if (previousTrack) {
-			addToTrackQueue([previousTrack]);
-
 			if (previousTrack.id) {
 				selectTrack(previousTrack.id);
 			} else if (previousTrack.spotifyId) {
