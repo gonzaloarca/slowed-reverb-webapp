@@ -94,9 +94,7 @@ const TrackListContextProvider = ({ children }) => {
 
 			// find index of current track in original track list
 			const originalTrackIndex = originalTrackList.current.findIndex(
-				(track) =>
-					track.id === currentTrack.id ||
-					track.spotifyId === currentTrack.spotifyId
+				(track) => track.id === currentTrack.id
 			);
 
 			setCurrentTrackIndex(originalTrackIndex);

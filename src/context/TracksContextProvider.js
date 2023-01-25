@@ -14,7 +14,7 @@ const TracksContextProvider = ({ children }) => {
 			setIsLoading(true);
 
 			// check if track is already downloaded in indexedDB
-			let track = await db.tracks.where("spotifyId").equals(spotifyId).first();
+			let track = await db.tracks.where("id").equals(spotifyId).first();
 
 			// if not, download it from spotify using the downloader API
 			if (!track) {
@@ -42,45 +42,44 @@ const TracksContextProvider = ({ children }) => {
 		}
 	};
 
-	const getTrackFromYoutubeId = async (youtubeId) => {
-		try {
-			setIsLoading(true);
+	// const getTrackFromYoutubeId = async (youtubeId) => {
+	// 	try {
+	// 		setIsLoading(true);
 
-			// check if track is already downloaded in indexedDB
-			let track = await db.tracks.where("id").equals(youtubeId).first();
+	// 		// check if track is already downloaded in indexedDB
+	// 		let track = await db.tracks.where("id").equals(youtubeId).first();
 
-			// if not, download it from youtube using the downloader API
-			if (!track) {
-				track = await SongDownloaderService.downloadFromYoutubeVideoId(
-					youtubeId
-				);
+	// 		// if not, download it from youtube using the downloader API
+	// 		if (!track) {
+	// 			track = await SongDownloaderService.downloadFromYoutubeVideoId(
+	// 				youtubeId
+	// 			);
 
-				// put the track in indexedDB
-				await db.tracks.put(track);
-			}
+	// 			// put the track in indexedDB
+	// 			await db.tracks.put(track);
+	// 		}
 
-			// update the tracksById state
-			setTracksById((tracksById) => ({
-				...tracksById,
-				[track?.id]: {
-					...omit(track, ["audioFile"]),
-				},
-			}));
+	// 		// update the tracksById state
+	// 		setTracksById((tracksById) => ({
+	// 			...tracksById,
+	// 			[track?.id]: {
+	// 				...omit(track, ["audioFile"]),
+	// 			},
+	// 		}));
 
-			return track;
-		} catch (error) {
-			console.error(error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
+	// 		return track;
+	// 	} catch (error) {
+	// 		console.error(error);
+	// 	} finally {
+	// 		setIsLoading(false);
+	// 	}
+	// };
 
 	return (
 		<TracksContext.Provider
 			value={{
 				tracksById,
 				getTrackFromSpotifyId,
-				getTrackFromYoutubeId,
 				isLoading,
 			}}
 		>

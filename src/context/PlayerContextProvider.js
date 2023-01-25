@@ -8,7 +8,6 @@ import { arrayBufferToBlob } from "../utils/blob";
 import { PlaylistsContext } from "./PlaylistsContextProvider";
 import LibraryTabOptions from "../pages/Library/libraryTabOptions";
 import { createTrack } from "../utils/tracklist";
-import { shuffle as shuffleArray } from "lodash";
 
 const TIME_UPDATE_INTERVAL = 0.1;
 const RESTART_TRACK_ON_PREVIOUS_THRESHOLD = 3;
@@ -16,12 +15,10 @@ const RESTART_TRACK_ON_PREVIOUS_THRESHOLD = 3;
 export const PlayerContext = React.createContext(null);
 
 const PlayerContextProvider = ({ children }) => {
-	const { tracksById, getTrackFromYoutubeId, getTrackFromSpotifyId } =
-		React.useContext(TracksContext);
+	const { tracksById, getTrackFromSpotifyId } = React.useContext(TracksContext);
 	const {
 		playNextTrackInList,
 		playPreviousTrackInList,
-		setCurrentTrackIndex,
 		setTrackList,
 		shuffleTrackList,
 		unshuffleTrackList,
@@ -103,32 +100,28 @@ const PlayerContextProvider = ({ children }) => {
 		[toneRef]
 	);
 
-	function selectTrack(trackId) {
-		const track = tracksById[trackId];
+	// function selectTrack(trackId) {
+	// 	const track = tracksById[trackId];
 
-		if (!track) {
-			setIsLoading(true);
-			getTrackFromYoutubeId(trackId)
-				.then((track) => {
-					playTrack(track.id);
-				})
-				.finally(() => {
-					setIsLoading(false);
-				});
-		} else {
-			playTrack(track.id);
-		}
-	}
+	// 	if (!track) {
+	// 		setIsLoading(true);
+	// 		getTrackFromYoutubeId(trackId)
+	// 			.then((track) => {
+	// 				playTrack(track.id);
+	// 			})
+	// 			.finally(() => {
+	// 				setIsLoading(false);
+	// 			});
+	// 	} else {
+	// 		playTrack(track.id);
+	// 	}
+	// }
 
 	function handleTrackEnd() {
 		const nextTrack = playNextTrackInList();
 
 		if (nextTrack) {
-			if (nextTrack.id) {
-				selectTrack(nextTrack.id);
-			} else if (nextTrack.spotifyId) {
-				selectSpotifyTrack(nextTrack.spotifyId);
-			}
+			selectSpotifyTrack(nextTrack.id);
 		} else {
 			setPlayer(
 				createPlayer() // reset player
@@ -224,7 +217,7 @@ const PlayerContextProvider = ({ children }) => {
 	function selectSpotifyTrack(spotifyId) {
 		// find youtube ID from spotify ID
 		const track = Object.values(tracksById).find(
-			(track) => track.spotifyId === spotifyId
+			(track) => track.id === spotifyId
 		);
 
 		if (track) {
@@ -252,7 +245,7 @@ const PlayerContextProvider = ({ children }) => {
 		);
 
 		const trackIndex = playlistItems.findIndex(
-			(trackItem) => trackItem.spotifyId === spotifyId
+			(trackItem) => trackItem.id === spotifyId
 		);
 
 		setTrackList(playlistItems, trackIndex, player.shuffle);
@@ -298,11 +291,7 @@ const PlayerContextProvider = ({ children }) => {
 		const previousTrack = playPreviousTrackInList();
 
 		if (previousTrack) {
-			if (previousTrack.id) {
-				selectTrack(previousTrack.id);
-			} else if (previousTrack.spotifyId) {
-				selectSpotifyTrack(previousTrack.spotifyId);
-			}
+			selectSpotifyTrack(previousTrack.id);
 		}
 	}
 
@@ -343,7 +332,6 @@ const PlayerContextProvider = ({ children }) => {
 			value={{
 				player,
 				playTrack,
-				selectTrack,
 				selectSpotifyTrack,
 				selectSpotifyTrackFromPlaylist,
 				pausePlayer,

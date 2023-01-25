@@ -4,7 +4,7 @@ class Database extends Dexie {
 	constructor() {
 		super("database");
 		this.version(1).stores({
-			tracks: "&id, spotifyId", // Primary key
+			tracks: "&id", // Primary key
 		});
 	}
 }

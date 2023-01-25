@@ -1,4 +1,3 @@
-export const createTrack = ({ spotifyId = null, youtubeId = null }) => ({
-	spotifyId,
-	id: youtubeId,
+export const createTrack = ({ spotifyId }) => ({
+	id: spotifyId,
 });

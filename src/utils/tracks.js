@@ -1,19 +1,5 @@
-export const createTrack = ({
-	youtubeId,
-	title,
-	artist = null,
-	album = null,
-	duration,
-	thumbnail = null,
+export const createTrack = ({ metadata, audioFile, spotifyId }) => ({
+	id: spotifyId,
+	metadata,
 	audioFile,
-	spotifyId = null,
-}) => ({
-	id: youtubeId,
-	title,
-	artist,
-	album,
-	duration,
-	thumbnail,
-	audioFile,
-	spotifyId,
 });
