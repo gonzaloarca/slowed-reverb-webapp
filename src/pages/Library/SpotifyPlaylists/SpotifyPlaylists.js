@@ -48,7 +48,9 @@ const SpotifyPlaylists = () => {
 		<Spin />
 	) : !spotifyCredentials?.accessToken ? (
 		<Button>
-			<a href="http://localhost:8000/auth/spotify">Login with Spotify</a>
+			<a href={`${process.env.REACT_APP_SONG_DOWNLOADER_API}/auth/spotify`}>
+				Login with Spotify
+			</a>
 		</Button>
 	) : (
 		<InfiniteScroll
