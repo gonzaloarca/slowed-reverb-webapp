@@ -1,6 +1,5 @@
-import { Radio } from "antd";
 import React from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import LibraryTabOptions from "./libraryTabOptions";
 
 const Library = () => {
@@ -37,10 +36,10 @@ const Library = () => {
 	}, [location.pathname, libraryTab, navigate]);
 
 	return (
-		<section>
-			<h1>Library</h1>
+		<section className="p-4">
+			<h1>Your Spotify Playlists</h1>
 			<div>
-				<Radio.Group
+				{/* <Radio.Group
 					onChange={(e) => setLibraryTab(e.target.value)}
 					value={libraryTab}
 					optionType="button"
@@ -51,7 +50,7 @@ const Library = () => {
 							<Radio.Button value={tab.value}>{tab.label}</Radio.Button>
 						</Link>
 					))}
-				</Radio.Group>
+				</Radio.Group> */}
 
 				{/*  */}
 

@@ -36,6 +36,7 @@ const PlayerContextProvider = ({ children }) => {
 	const slowedAmountRef = React.useRef(slowedAmount);
 	const currentTimeRef = React.useRef(0);
 	const isPausedRef = React.useRef(true);
+	const currentTrackIdRef = React.useRef(null);
 
 	const spotifyPlaylistsById = useMemo(
 		() => playlists?.[LibraryTabOptions.Spotify.value],
@@ -215,6 +216,14 @@ const PlayerContextProvider = ({ children }) => {
 	}
 
 	function selectSpotifyTrack(spotifyId) {
+		currentTrackIdRef.current = spotifyId;
+
+		// stop toneRef
+		if (toneRef.current) {
+			Tone.Transport.stop();
+			toneRef.current.dispose();
+		}
+
 		// find youtube ID from spotify ID
 		const track = Object.values(tracksById).find(
 			(track) => track.id === spotifyId
@@ -227,7 +236,9 @@ const PlayerContextProvider = ({ children }) => {
 
 			getTrackFromSpotifyId(spotifyId)
 				.then((track) => {
-					playTrack(track.id);
+					// Only play track if it's still the current track,
+					// as the user may have selected another track in the meantime
+					if (currentTrackIdRef.current === track.id) playTrack(track.id);
 				})
 				.finally(() => {
 					setIsLoading(false);

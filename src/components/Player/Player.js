@@ -10,6 +10,7 @@ import React, { useEffect } from "react";
 import { PlayerContext } from "../../context/PlayerContextProvider";
 import style from "./Player.module.scss";
 import { BsShuffle } from "react-icons/bs";
+import LoadingSpinner from "../LoadingSpinner";
 
 const Player = () => {
 	const {
@@ -24,6 +25,7 @@ const Player = () => {
 		setReverbAmount,
 		reverbRef,
 		toggleShuffle,
+		isLoading,
 	} = React.useContext(PlayerContext);
 
 	useEffect(() => {
@@ -57,6 +59,7 @@ const Player = () => {
 					className={clsx(style.playButton, "mx-2")}
 					type="text"
 					shape="circle"
+					disabled={!player.currentTrackId || isLoading}
 					onClick={() => {
 						if (player.isPlaying) {
 							pausePlayer();
@@ -65,7 +68,13 @@ const Player = () => {
 						}
 					}}
 				>
-					{player.isPlaying ? <PauseCircleFilled /> : <PlayCircleFilled />}
+					{player.isLoading ? (
+						<LoadingSpinner />
+					) : player.isPlaying ? (
+						<PauseCircleFilled />
+					) : (
+						<PlayCircleFilled />
+					)}
 				</Button>
 				<Button
 					type="text"

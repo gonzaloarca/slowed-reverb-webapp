@@ -14,24 +14,17 @@ const AppLayout = () => {
 
 	return (
 		<Layout className="h-screen" onClick={createToneContext}>
-			<Header>Header</Header>
-			<Layout>
-				<Sider
-				// breakpoint="sm" collapsedWidth="0"
-				>
-					<SideNav />
-				</Sider>
-				<Content
-					style={{
-						overflowY: "auto",
-					}}
-					id="layout-content"
-				>
-					<Suspense fallback={<SplashScreen />}>
-						<Outlet />
-					</Suspense>
-				</Content>
-			</Layout>
+			<Header>Slowed + Reverb</Header>
+			<Content
+				style={{
+					overflowY: "auto",
+				}}
+				id="layout-content"
+			>
+				<Suspense fallback={<SplashScreen />}>
+					<Outlet />
+				</Suspense>
+			</Content>
 			<Footer>
 				<Player />
 				<BottomNav />

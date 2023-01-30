@@ -3,10 +3,11 @@ const Routes = {
 	Dashboard: "/dashboard",
 	Search: "/search",
 	Library: "/library",
-	SpotifyPlaylistViewer: "/library/playlists/spotify/:playlistId",
+	SpotifyPlaylistViewer: "/library/playlists/:playlistId",
+	LocalSongs: "/library/local",
 	SpotifyAuthSuccess: "/spotify-auth-success",
 	Settings: "/settings",
-	SpotifyPlaylists: "/library/playlists/spotify",
+	SpotifyPlaylists: "/library/playlists",
 };
 
 export default Routes;

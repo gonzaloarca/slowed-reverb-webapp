@@ -1,4 +1,5 @@
 import { Breadcrumb, List } from "antd";
+import clsx from "clsx";
 import React, { useMemo } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Link, useParams } from "react-router-dom";
@@ -35,13 +36,10 @@ const SpotifyPlaylistViewer = () => {
 	return isFetchingPlaylistItems ? (
 		<LoadingSpinner />
 	) : (
-		<div className={style.container}>
+		<section className={clsx(style.container, "p-4")}>
 			<Breadcrumb>
 				<Breadcrumb.Item>
-					<Link to={Routes.Library}>Library</Link>
-				</Breadcrumb.Item>
-				<Breadcrumb.Item>
-					<Link to={Routes.SpotifyPlaylists}>Spotify Playlists</Link>
+					<Link to={Routes.Library}>Playlists</Link>
 				</Breadcrumb.Item>
 				<Breadcrumb.Item>{playlist?.name}</Breadcrumb.Item>
 			</Breadcrumb>
@@ -64,7 +62,7 @@ const SpotifyPlaylistViewer = () => {
 					</List.Item>
 				)}
 			/>
-		</div>
+		</section>
 	);
 };
 

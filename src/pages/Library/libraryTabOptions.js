@@ -1,13 +1,15 @@
+import Routes from "../../routes/routes";
+
 const LibraryTabOptions = {
 	Spotify: {
 		value: "spotify",
 		label: "Spotify Playlists",
-		route: "/library/playlists/spotify",
+		route: Routes.SpotifyPlaylists,
 	},
 	Local: {
 		value: "local",
 		label: "Local",
-		route: "/library/local",
+		route: Routes.LocalSongs,
 	},
 };
 
