@@ -1,7 +1,6 @@
 import { Breadcrumb, List } from "antd";
 import clsx from "clsx";
 import React, { useMemo } from "react";
-import InfiniteScroll from "react-infinite-scroll-component";
 import { Link, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { PlayerContext } from "../../context/PlayerContextProvider";
@@ -14,12 +13,8 @@ const SpotifyPlaylistViewer = () => {
 	const { playlistId } = useParams();
 	const { playlists, fetchSpotifyPlaylistItems, isFetchingPlaylistItems } =
 		React.useContext(PlaylistsContext);
-	const {
-		selectSpotifyTrack,
-		selectSpotifyTrackFromPlaylist,
-		player,
-		isLoading,
-	} = React.useContext(PlayerContext);
+	const { selectSpotifyTrackFromPlaylist, player, isLoading } =
+		React.useContext(PlayerContext);
 
 	const playlist = useMemo(
 		() => playlists[LibraryTabOptions.Spotify.value]?.[playlistId],

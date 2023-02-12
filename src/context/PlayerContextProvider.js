@@ -10,9 +10,8 @@ import LibraryTabOptions from "../pages/Library/libraryTabOptions";
 import { createTrack } from "../utils/tracklist";
 import audioBufferToWav from "audiobuffer-to-wav";
 import { getAudioDuration } from "../utils/audio";
-import { OfflineContext } from "tone";
 
-const RESTART_TRACK_ON_PREVIOUS_THRESHOLD = 3;
+// const RESTART_TRACK_ON_PREVIOUS_THRESHOLD = 3;
 
 export const PlayerContext = React.createContext(null);
 
@@ -60,28 +59,6 @@ const PlayerContextProvider = ({ children }) => {
 
 		return blob;
 	}
-
-	/**
-	 * @param {string} trackId
-	 * @param {OfflineContext} context
-	 */
-	const loadTrack = useCallback(
-		async (trackId, context) => {
-			// get audioFile from indexedDB
-			const blob = await getAudioBlobFromTrackId(trackId);
-
-			const url = URL.createObjectURL(blob);
-
-			console.log("url", url);
-
-			// create buffer before loading
-			const buffer = await context.createBuffer(url);
-
-			// set the buffer
-			toneRef.current.buffer.set(buffer);
-		},
-		[toneRef]
-	);
 
 	const handleTimeUpdate = useCallback(
 		(time) => {

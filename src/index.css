@@ -13,12 +13,12 @@ body {
 		sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	height: 100vh !important;
-	height: -webkit-fill-available !important;
+	min-height: 100vh !important;
+	min-height: -webkit-fill-available !important;
 }
 
 html {
-	height: -webkit-fill-available !important;
+	min-height: -webkit-fill-available !important;
 }
 
 h1 {
