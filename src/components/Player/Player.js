@@ -6,11 +6,13 @@ import {
 } from "@ant-design/icons";
 import { Button, Col, Row, Slider } from "antd";
 import clsx from "clsx";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { PlayerContext } from "../../context/PlayerContextProvider";
 import style from "./Player.module.scss";
 import { BsShuffle } from "react-icons/bs";
 import LoadingSpinner from "../LoadingSpinner";
+import RCSlider from "rc-slider";
+import "rc-slider/assets/index.css";
 
 const Player = () => {
 	const {
@@ -26,8 +28,51 @@ const Player = () => {
 		reverbRef,
 		toggleShuffle,
 		isLoading,
+		handleTrackEnd,
+		handleTimeUpdate,
+		handleMetadataLoaded,
 	} = React.useContext(PlayerContext);
+	const [isDragging, setIsDragging] = React.useState(false);
+
 	const audioRef = React.useRef(null);
+
+	const timeUpdateHandler = (e) => {
+		if (isDragging) return;
+
+		const current = e.target.currentTime;
+
+		handleTimeUpdate(current);
+	};
+
+	const endedHandler = () => {
+		handleTrackEnd();
+	};
+
+	const loadedHandler = (e) => {
+		handleMetadataLoaded(e);
+	};
+
+	const handleDragChange = useCallback(
+		(value) => {
+			if (isDragging) {
+				handleTimeUpdate(value);
+			}
+		},
+		[isDragging]
+	);
+
+	const handleDragStart = useCallback(() => {
+		setIsDragging(true);
+	}, []);
+
+	const handleDragEnd = useCallback((value) => {
+		setIsDragging(false);
+
+		if (audioRef.current) {
+			audioRef.current.currentTime = value;
+			handleTimeUpdate(value);
+		}
+	}, []);
 
 	useEffect(() => {
 		// apply reverb
@@ -37,7 +82,12 @@ const Player = () => {
 	}, [reverbAmount, reverbRef]);
 
 	useEffect(() => {
-		if (!audioRef.current || !player.currentAudioUrl) {
+		if (!audioRef.current) {
+			return;
+		}
+
+		if (!player.currentAudioUrl) {
+			audioRef.current.pause();
 			return;
 		}
 
@@ -52,52 +102,56 @@ const Player = () => {
 		<>
 			<div className={style.playerContainer}>
 				<div>
-					{player.currentTrackId && (
-						<div className={style.trackInfo}>
-							Duration: {Math.floor(player.duration)}
-							Current Time: {Math.floor(player.currentTime)}
-						</div>
-					)}
-				</div>
-				<div className={style.playerButtons}>
-					<Button
-						type="text"
-						shape="circle"
-						onClick={skipToPreviousTrack}
-						size="large"
-					>
-						<StepBackwardFilled />
-					</Button>
-					<Button
-						size="large"
-						className={clsx(style.playButton, "mx-2")}
-						type="text"
-						shape="circle"
-						disabled={!player.currentTrackId || isLoading}
-						onClick={() => {
-							if (player.isPlaying) {
-								pausePlayer();
-							} else {
-								resumePlayer();
-							}
-						}}
-					>
-						{player.isLoading ? (
-							<LoadingSpinner />
-						) : player.isPlaying ? (
-							<PauseCircleFilled />
-						) : (
-							<PlayCircleFilled />
-						)}
-					</Button>
-					<Button
-						type="text"
-						shape="circle"
-						onClick={skipToNextTrack}
-						size="large"
-					>
-						<StepForwardFilled />
-					</Button>
+					<div className={style.playerButtons}>
+						<Button
+							type="text"
+							shape="circle"
+							onClick={skipToPreviousTrack}
+							size="large"
+						>
+							<StepBackwardFilled />
+						</Button>
+						<Button
+							size="large"
+							className={clsx(style.playButton, "mx-2")}
+							type="text"
+							shape="circle"
+							disabled={!player.currentTrackId || isLoading}
+							onClick={() => {
+								if (player.isPlaying) {
+									pausePlayer();
+								} else {
+									resumePlayer();
+								}
+							}}
+						>
+							{player.isLoading ? (
+								<LoadingSpinner />
+							) : player.isPlaying ? (
+								<PauseCircleFilled />
+							) : (
+								<PlayCircleFilled />
+							)}
+						</Button>
+						<Button
+							type="text"
+							shape="circle"
+							onClick={skipToNextTrack}
+							size="large"
+						>
+							<StepForwardFilled />
+						</Button>
+					</div>
+
+					<div className={style.progressContainer}>
+						<RCSlider
+							value={player?.currentTime}
+							max={player?.duration}
+							onChange={handleDragChange}
+							onBeforeChange={handleDragStart}
+							onAfterChange={handleDragEnd}
+						/>
+					</div>
 				</div>
 
 				<Button
@@ -105,10 +159,10 @@ const Player = () => {
 					shape="circle"
 					onClick={toggleShuffle}
 					size="large"
-					className="flex justify-center align-center"
+					className="flex justify-center items-center"
 				>
 					<BsShuffle
-						color={player.shuffle ? "green" : "black"}
+						color={player.shuffle ? "green" : "white"}
 						size="1.25rem"
 					/>
 				</Button>
@@ -140,7 +194,13 @@ const Player = () => {
 					</Col>
 				</Row>
 			</div>
-			<audio src={player.currentAudioUrl} ref={audioRef} />
+			<audio
+				src={player.currentAudioUrl}
+				ref={audioRef}
+				onLoadedMetadata={loadedHandler}
+				onTimeUpdate={timeUpdateHandler}
+				onEnded={endedHandler}
+			/>
 		</>
 	);
 };

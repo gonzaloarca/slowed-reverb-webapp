@@ -84,6 +84,28 @@ const PlayerContextProvider = ({ children }) => {
 		[toneRef]
 	);
 
+	const handleTimeUpdate = useCallback(
+		(time) => {
+			setPlayer((player) => ({
+				...player,
+				currentTime: time,
+			}));
+		},
+		[setPlayer]
+	);
+
+	const handleMetadataLoaded = useCallback(
+		(e) => {
+			const { duration } = e.target;
+
+			setPlayer((player) => ({
+				...player,
+				duration,
+			}));
+		},
+		[setPlayer]
+	);
+
 	// function selectTrack(trackId) {
 	// 	const track = tracksById[trackId];
 
@@ -102,6 +124,12 @@ const PlayerContextProvider = ({ children }) => {
 	// }
 
 	function handleTrackEnd() {
+		setPlayer((player) => ({
+			...player,
+			currentAudioUrl: null,
+			currentTime: 0,
+			duration: 0,
+		}));
 		const nextTrack = playNextTrackInList();
 
 		if (nextTrack) {
@@ -120,17 +148,21 @@ const PlayerContextProvider = ({ children }) => {
 
 		// TODO: Avoid creating a new audio context if replaying the same track
 
-		createAudioWithFx(trackId).then(() => {
-			currentTimeRef.current = 0;
+		createAudioWithFx(trackId)
+			.then(() => {
+				currentTimeRef.current = 0;
 
-			setPlayer((player) => ({
-				...player,
-				currentTrackId: trackId,
-				currentTime: 0,
-				duration: 0,
-				isPlaying: true,
-			}));
-		});
+				setPlayer((player) => ({
+					...player,
+					currentTrackId: trackId,
+					currentTime: 0,
+					duration: 0,
+					isPlaying: true,
+				}));
+			})
+			.finally(() => {
+				setIsLoading(false);
+			});
 	}
 
 	async function createAudioWithFx(trackId) {
@@ -145,7 +177,8 @@ const PlayerContextProvider = ({ children }) => {
 			return;
 		}
 
-		const slowedDuration = duration * (1 - slowedAmount);
+		const slowedDuration = duration / (1 - slowedAmount);
+		console.log("slowedDuration", slowedDuration);
 
 		// dispose of previous Tone objects
 		if (toneRef.current) {
@@ -166,42 +199,48 @@ const PlayerContextProvider = ({ children }) => {
 		// create buffer before loading
 		const buffer = await Tone.Buffer.fromUrl(url);
 
-		Tone.Offline((context) => {
-			reverbRef.current = new Tone.Reverb({
-				wet: 0.5,
+		return new Promise((resolve) => {
+			Tone.Offline((context) => {
+				reverbRef.current = new Tone.Reverb({
+					wet: 0.5,
+				});
+
+				toneRef.current = new Tone.Player({
+					playbackRate: 1 - slowedAmount,
+				});
+
+				toneRef.current.connect(reverbRef.current);
+
+				reverbRef.current.connect(context.destination);
+
+				// load the buffer
+				toneRef.current.buffer.set(buffer);
+
+				// sync the player to the transport
+				toneRef.current.start(0);
+
+				// start the transport
+				// context.transport.start();
+			}, slowedDuration).then((buffer) => {
+				// save as wav blob in currentAudioRef
+				const wavArrayBuffer = audioBufferToWav(buffer.get());
+
+				const blob = arrayBufferToBlob(wavArrayBuffer, "audio/wav");
+				const blobUrl = URL.createObjectURL(blob);
+				console.log("blobUrl", blobUrl);
+
+				setPlayer((player) => ({
+					...player,
+					currentAudioUrl: blobUrl,
+				}));
+
+				resolve();
 			});
-
-			toneRef.current = new Tone.Player({
-				playbackRate: 1 - slowedAmount,
-			});
-
-			toneRef.current.connect(reverbRef.current);
-
-			reverbRef.current.connect(context.destination);
-
-			// load the buffer
-			toneRef.current.buffer.set(buffer);
-
-			// sync the player to the transport
-			toneRef.current.start(0);
-
-			// start the transport
-			// context.transport.start();
-		}, slowedDuration).then((buffer) => {
-			// save as wav blob in currentAudioRef
-			const wavArrayBuffer = audioBufferToWav(buffer.get());
-
-			const blob = arrayBufferToBlob(wavArrayBuffer, "audio/wav");
-			const blobUrl = URL.createObjectURL(blob);
-			console.log("blobUrl", blobUrl);
-			setPlayer((player) => ({
-				...player,
-				currentAudioUrl: blobUrl,
-			}));
 		});
 	}
 
 	function selectSpotifyTrack(spotifyId) {
+		setIsLoading(true);
 		currentTrackIdRef.current = spotifyId;
 
 		// find youtube ID from spotify ID
@@ -212,17 +251,11 @@ const PlayerContextProvider = ({ children }) => {
 		if (track) {
 			playTrack(track.id);
 		} else {
-			setIsLoading(true);
-
-			getTrackFromSpotifyId(spotifyId)
-				.then((track) => {
-					// Only play track if it's still the current track,
-					// as the user may have selected another track in the meantime
-					if (currentTrackIdRef.current === track.id) playTrack(track.id);
-				})
-				.finally(() => {
-					setIsLoading(false);
-				});
+			getTrackFromSpotifyId(spotifyId).then((track) => {
+				// Only play track if it's still the current track,
+				// as the user may have selected another track in the meantime
+				if (currentTrackIdRef.current === track.id) playTrack(track.id);
+			});
 		}
 	}
 
@@ -321,6 +354,9 @@ const PlayerContextProvider = ({ children }) => {
 				toneRef,
 				createToneContext,
 				toggleShuffle,
+				handleTrackEnd,
+				handleTimeUpdate,
+				handleMetadataLoaded,
 			}}
 		>
 			{children}

@@ -2,7 +2,7 @@ const Routes = {
 	Root: "/",
 	Dashboard: "/dashboard",
 	Search: "/search",
-	Library: "/library",
+	Library: "/",
 	SpotifyPlaylistViewer: "/library/playlists/:playlistId",
 	LocalSongs: "/library/local",
 	SpotifyAuthSuccess: "/spotify-auth-success",
