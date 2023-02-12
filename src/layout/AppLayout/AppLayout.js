@@ -14,7 +14,7 @@ const AppLayout = () => {
 	const { createToneContext } = useContext(PlayerContext);
 
 	return (
-		<Layout className="h-screen" onClick={createToneContext}>
+		<Layout className={style.layout} onClick={createToneContext}>
 			<Header
 				className={style.header}
 				style={{
