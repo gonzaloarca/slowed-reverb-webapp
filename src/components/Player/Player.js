@@ -4,7 +4,7 @@ import {
 	StepBackwardFilled,
 	StepForwardFilled,
 } from "@ant-design/icons";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import clsx from "clsx";
 import React, { useCallback, useEffect } from "react";
 import { PlayerContext } from "../../context/PlayerContextProvider";
@@ -30,6 +30,7 @@ const Player = () => {
 		handleMetadataLoaded,
 	} = React.useContext(PlayerContext);
 	const [isDragging, setIsDragging] = React.useState(false);
+	const [showErrorModal, setShowErrorModal] = React.useState(false);
 
 	const audioRef = React.useRef(null);
 
@@ -75,6 +76,7 @@ const Player = () => {
 	);
 
 	useEffect(() => {
+		console.log("EFFECT");
 		if (!audioRef.current) {
 			return;
 		}
@@ -84,11 +86,16 @@ const Player = () => {
 			return;
 		}
 
-		if (player.isPlaying) {
-			audioRef.current.play();
-		} else {
+		if (player.isPlaying && audioRef.current.paused) {
+			audioRef.current.play().catch((err) => {
+				console.error(err);
+				setShowErrorModal(true);
+				pausePlayer();
+			});
+		} else if (!player.isPlaying && !audioRef.current.paused) {
 			audioRef.current.pause();
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [player.isPlaying, player.currentAudioUrl]);
 
 	return (
@@ -176,7 +183,22 @@ const Player = () => {
 				onLoadedMetadata={loadedHandler}
 				onTimeUpdate={timeUpdateHandler}
 				onEnded={endedHandler}
+				onPlay={() => {
+					resumePlayer();
+				}}
+				onPause={() => {
+					pausePlayer();
+				}}
+				autoPlay
 			/>
+			<Modal
+				title="Playback Error"
+				open={showErrorModal}
+				onCancel={() => setShowErrorModal(false)}
+				footer={null}
+			>
+				<p>There was an error playing the track. Please try again</p>
+			</Modal>
 		</>
 	);
 };
