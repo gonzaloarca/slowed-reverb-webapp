@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { AuthContext } from "../../context/AuthContextProvider";
+import Routes from "../../routes/routes";
 
 const SpotifyAuthSuccess = () => {
 	const [searchParams] = useSearchParams();
@@ -18,7 +19,7 @@ const SpotifyAuthSuccess = () => {
 		}
 
 		getSpotifyCredentials(spotifyCode, spotifyState).then(() => {
-			navigate("/library");
+			navigate(Routes.Library);
 		});
 	}, [
 		spotifyCode,
