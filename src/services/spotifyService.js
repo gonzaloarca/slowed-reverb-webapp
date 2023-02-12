@@ -1,5 +1,7 @@
 import SpotifyApi from "../api/spotifyApi";
+import { SPOTIFY_CREDENTIALS_KEY } from "../context/AuthContextProvider";
 import { translateSpotifyApiPlaylistToLocal } from "../utils/spotify";
+import { SongDownloaderService } from "./songDownloaderService";
 
 const _setAccessToken = (credentials) => {
 	try {
@@ -63,42 +65,68 @@ const fetchUserPlaylists = async (credentials, offset = null, limit = null) => {
 };
 
 const fetchPlaylistItems = async (credentials, playlistId) => {
-	await _setAccessToken(credentials);
+	try {
+		await _setAccessToken(credentials);
 
-	const playlistItems = [];
+		const playlistItems = [];
 
-	const playlistItemsRes = await SpotifyApi.getPlaylistTracks(playlistId);
+		const playlistItemsRes = await SpotifyApi.getPlaylistTracks(playlistId);
 
-	playlistItems.push(...playlistItemsRes.body.items);
+		playlistItems.push(...playlistItemsRes.body.items);
 
-	console.log(playlistItemsRes);
+		console.log(playlistItemsRes);
 
-	let nextLink = playlistItemsRes.body.next;
+		let nextLink = playlistItemsRes.body.next;
 
-	while (nextLink) {
-		const nextUrl = new URL(nextLink);
-		const nextOffsetParam = nextUrl.searchParams.get("offset");
-		const nextLimitParam = nextUrl.searchParams.get("limit");
+		while (nextLink) {
+			const nextUrl = new URL(nextLink);
+			const nextOffsetParam = nextUrl.searchParams.get("offset");
+			const nextLimitParam = nextUrl.searchParams.get("limit");
 
-		const nextOffset = nextOffsetParam ? parseInt(nextOffsetParam) : null;
-		const nextLimit = nextLimitParam ? parseInt(nextLimitParam) : null;
+			const nextOffset = nextOffsetParam ? parseInt(nextOffsetParam) : null;
+			const nextLimit = nextLimitParam ? parseInt(nextLimitParam) : null;
 
-		const nextPlaylistItemsRes = await SpotifyApi.getPlaylistTracks(
-			playlistId,
-			{
-				offset: nextOffset,
-				limit: nextLimit,
-			}
-		);
+			const nextPlaylistItemsRes = await SpotifyApi.getPlaylistTracks(
+				playlistId,
+				{
+					offset: nextOffset,
+					limit: nextLimit,
+				}
+			);
 
-		playlistItems.push(...nextPlaylistItemsRes.body.items);
+			playlistItems.push(...nextPlaylistItemsRes.body.items);
 
-		nextLink = nextPlaylistItemsRes.body.next;
+			nextLink = nextPlaylistItemsRes.body.next;
+		}
+
+		return {
+			playlistItems,
+		};
+	} catch (error) {
+		console.error(error);
+
+		switch (error.statusCode) {
+			case 401:
+				const cachedCredentialsStr = localStorage.getItem(
+					SPOTIFY_CREDENTIALS_KEY
+				);
+
+				if (!cachedCredentialsStr) {
+					throw error;
+				}
+
+				const cachedCredentials = JSON.parse(cachedCredentialsStr);
+				console.log("using cached credentials", cachedCredentials);
+
+				await SongDownloaderService.refreshSpotifyCredentials(
+					cachedCredentials
+				);
+
+				return fetchPlaylistItems(cachedCredentials, playlistId);
+			default:
+				throw error;
+		}
 	}
-
-	return {
-		playlistItems,
-	};
 };
 
 const SpotifyService = {

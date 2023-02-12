@@ -12,7 +12,14 @@ const TopNav = () => {
 	return (
 		<>
 			<div className="flex justify-between items-center">
-				<h1 className="m-0">Slow + Reverb</h1>
+				<h1
+					className="m-0"
+					style={{
+						fontSize: "1.2rem",
+					}}
+				>
+					Slow + Reverb
+				</h1>
 
 				<Button
 					type="text"
@@ -21,7 +28,11 @@ const TopNav = () => {
 					size="large"
 					className="flex justify-center items-center"
 				>
-					<SettingFilled />
+					<SettingFilled
+						style={{
+							fontSize: "1.25rem",
+						}}
+					/>
 				</Button>
 			</div>
 			<Modal

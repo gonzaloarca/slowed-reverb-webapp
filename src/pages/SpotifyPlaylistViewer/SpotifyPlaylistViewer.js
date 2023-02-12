@@ -38,10 +38,12 @@ const SpotifyPlaylistViewer = () => {
 	]);
 
 	return isFetchingPlaylistItems ? (
-		<LoadingSpinner />
+		<div className="w-100 h-100 flex items-center justify-center">
+			<LoadingSpinner />
+		</div>
 	) : (
 		<section className={clsx(style.container, "py-4 px-0")}>
-			<Breadcrumb>
+			<Breadcrumb className="px-3">
 				<Breadcrumb.Item>
 					<Link to={Routes.Library}>Playlists</Link>
 				</Breadcrumb.Item>

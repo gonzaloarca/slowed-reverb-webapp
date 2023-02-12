@@ -3,7 +3,7 @@ import { SongDownloaderService } from "../services/songDownloaderService";
 
 export const AuthContext = React.createContext(null);
 
-const SPOTIFY_CREDENTIALS_KEY = "spotifyCredentials";
+export const SPOTIFY_CREDENTIALS_KEY = "spotifyCredentials";
 
 const AuthContextProvider = ({ children }) => {
 	const [isLoading, setIsLoading] = React.useState(false);
