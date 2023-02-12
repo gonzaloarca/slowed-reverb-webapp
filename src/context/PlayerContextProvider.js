@@ -300,6 +300,62 @@ const PlayerContextProvider = ({ children }) => {
 		slowedAmountRef.current = slowedAmount;
 	}, [slowedAmount]);
 
+	// effect for setting up Media Session Actions
+	useEffect(() => {
+		if (!("mediaSession" in navigator)) {
+			return;
+		}
+
+		navigator.mediaSession.setActionHandler("play", resumePlayer);
+		navigator.mediaSession.setActionHandler("pause", pausePlayer);
+		navigator.mediaSession.setActionHandler(
+			"previoustrack",
+			skipToPreviousTrack
+		);
+		navigator.mediaSession.setActionHandler("nexttrack", skipToNextTrack);
+	}, [resumePlayer, pausePlayer, skipToPreviousTrack, skipToNextTrack]);
+
+	// effect for setting up Media Session Metadata
+	useEffect(() => {
+		if (!("mediaSession" in navigator)) {
+			return;
+		}
+
+		const track = tracksById[player.currentTrackId];
+
+		if (!track) {
+			return;
+		}
+
+		const artworkArrayBuffer = track.metadata.common?.picture?.[0]?.data;
+
+		let artwork = [];
+
+		if (artworkArrayBuffer) {
+			const artworkMimeType = track.metadata.common.picture[0].format;
+			const artworkBlob = arrayBufferToBlob(
+				artworkArrayBuffer,
+				artworkMimeType
+			);
+			const artworkUrl = URL.createObjectURL(artworkBlob);
+
+			artwork = [
+				{
+					src: artworkUrl,
+					sizes: "512x512",
+					type: artworkMimeType,
+				},
+			];
+		}
+
+		navigator.mediaSession.metadata = new MediaMetadata({
+			title: track.metadata.common.title,
+			artist: track.metadata.common.artist,
+			album: track.metadata.common.album,
+			artwork,
+		});
+	}, [player.currentTrackId, tracksById]);
+
 	return (
 		<PlayerContext.Provider
 			value={{
