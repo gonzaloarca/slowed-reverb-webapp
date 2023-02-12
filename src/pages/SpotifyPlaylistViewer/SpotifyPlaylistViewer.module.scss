@@ -1,11 +1,33 @@
 .songItem {
+	padding: {
+		top: 0.25rem !important;
+		bottom: 0.25rem !important;
+		left: 0rem !important;
+		right: 1rem !important;
+	}
 	&:hover {
-		background-color: #cdcdcd;
+		background-color: rgba(255, 255, 255, 0.2);
 		transition: background-color 0.2s ease-in-out;
 	}
 
 	&:active {
-		background-color: #bfbfbf;
+		background-color: rgba(255, 255, 255, 0.3);
 		transition: background-color 0.1s ease-in-out;
 	}
+}
+
+.activeSong * {
+	color: lightgreen !important;
+
+	.ant-list-item-meta-description {
+		opacity: 0.5 !important;
+	}
+}
+
+.songItemStatus {
+	width: 2rem;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
 }

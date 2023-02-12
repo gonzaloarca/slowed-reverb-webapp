@@ -14,8 +14,12 @@ const SpotifyPlaylistViewer = () => {
 	const { playlistId } = useParams();
 	const { playlists, fetchSpotifyPlaylistItems, isFetchingPlaylistItems } =
 		React.useContext(PlaylistsContext);
-	const { selectSpotifyTrack, selectSpotifyTrackFromPlaylist } =
-		React.useContext(PlayerContext);
+	const {
+		selectSpotifyTrack,
+		selectSpotifyTrackFromPlaylist,
+		player,
+		isLoading,
+	} = React.useContext(PlayerContext);
 
 	const playlist = useMemo(
 		() => playlists[LibraryTabOptions.Spotify.value]?.[playlistId],
@@ -36,7 +40,7 @@ const SpotifyPlaylistViewer = () => {
 	return isFetchingPlaylistItems ? (
 		<LoadingSpinner />
 	) : (
-		<section className={clsx(style.container, "p-4")}>
+		<section className={clsx(style.container, "py-4 px-0")}>
 			<Breadcrumb>
 				<Breadcrumb.Item>
 					<Link to={Routes.Library}>Playlists</Link>
@@ -48,11 +52,21 @@ const SpotifyPlaylistViewer = () => {
 				renderItem={(item) => (
 					<List.Item
 						key={item.id}
-						className={style.songItem}
+						className={clsx(
+							style.songItem,
+							player.currentTrackId === item.track.id && style.activeSong
+						)}
 						onClick={() =>
 							selectSpotifyTrackFromPlaylist(item.track.id, playlistId)
 						}
 					>
+						<div className={style.songItemStatus}>
+							{isLoading && player.currentTrackId === item.track.id ? (
+								<LoadingSpinner size="small" fontSize={16} />
+							) : (
+								<></>
+							)}
+						</div>
 						<List.Item.Meta
 							title={item.track.name}
 							description={item.track.artists

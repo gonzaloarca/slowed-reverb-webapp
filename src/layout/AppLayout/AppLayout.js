@@ -6,6 +6,7 @@ import SplashScreen from "../../pages/SplashScreen/SplashScreen";
 import BottomNav from "../BottomNav";
 import { PlayerContext } from "../../context/PlayerContextProvider";
 import TopNav from "../TopNav";
+import style from "./AppLayout.module.scss";
 
 const { Header, Footer, Content } = Layout;
 
@@ -15,8 +16,10 @@ const AppLayout = () => {
 	return (
 		<Layout className="h-screen" onClick={createToneContext}>
 			<Header
+				className={style.header}
 				style={{
 					paddingInline: "1rem",
+					backgroundColor: "rgba(255, 255, 255, 0.1)",
 				}}
 			>
 				<TopNav />
@@ -31,7 +34,7 @@ const AppLayout = () => {
 					<Outlet />
 				</Suspense>
 			</Content>
-			<Footer>
+			<Footer className={style.bottom}>
 				<Player />
 				<BottomNav />
 			</Footer>

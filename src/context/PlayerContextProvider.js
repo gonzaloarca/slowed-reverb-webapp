@@ -34,7 +34,6 @@ const PlayerContextProvider = ({ children }) => {
 	const toneRef = React.useRef(null);
 	const reverbRef = React.useRef(null);
 	const slowedAmountRef = React.useRef(slowedAmount);
-	const currentTimeRef = React.useRef(0);
 	const currentTrackIdRef = React.useRef(null);
 
 	const spotifyPlaylistsById = useMemo(
@@ -142,21 +141,9 @@ const PlayerContextProvider = ({ children }) => {
 
 		// TODO: Avoid creating a new audio context if replaying the same track
 
-		createAudioWithFx(trackId)
-			.then(() => {
-				currentTimeRef.current = 0;
-
-				setPlayer((player) => ({
-					...player,
-					currentTrackId: trackId,
-					currentTime: 0,
-					duration: 0,
-					isPlaying: true,
-				}));
-			})
-			.finally(() => {
-				setIsLoading(false);
-			});
+		createAudioWithFx(trackId).finally(() => {
+			setIsLoading(false);
+		});
 	}
 
 	async function createAudioWithFx(trackId) {
@@ -236,9 +223,11 @@ const PlayerContextProvider = ({ children }) => {
 	function selectSpotifyTrack(spotifyId) {
 		setPlayer((player) => ({
 			...player,
+			currentTrackId: spotifyId,
 			currentAudioUrl: null,
 			currentTime: 0,
 			duration: 0,
+			isPlaying: true,
 		}));
 
 		setIsLoading(true);
