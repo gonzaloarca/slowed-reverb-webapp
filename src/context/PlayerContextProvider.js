@@ -124,12 +124,6 @@ const PlayerContextProvider = ({ children }) => {
 	// }
 
 	function handleTrackEnd() {
-		setPlayer((player) => ({
-			...player,
-			currentAudioUrl: null,
-			currentTime: 0,
-			duration: 0,
-		}));
 		const nextTrack = playNextTrackInList();
 
 		if (nextTrack) {
@@ -240,6 +234,13 @@ const PlayerContextProvider = ({ children }) => {
 	}
 
 	function selectSpotifyTrack(spotifyId) {
+		setPlayer((player) => ({
+			...player,
+			currentAudioUrl: null,
+			currentTime: 0,
+			duration: 0,
+		}));
+
 		setIsLoading(true);
 		currentTrackIdRef.current = spotifyId;
 

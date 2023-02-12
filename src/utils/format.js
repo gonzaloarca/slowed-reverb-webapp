@@ -13,3 +13,16 @@ export const snakeize = (obj) =>
 
 		acc[snakeKey] = isObject(value) ? snakeize(value) : value;
 	});
+
+export const formatSeconds = (seconds) => {
+	const date = new Date(seconds * 1000);
+	let result = "";
+	if (seconds >= 3600) {
+		result += `${date.getUTCHours()}:`;
+		result += `${date.getUTCMinutes().toString().padStart(2, "0")}:`;
+	} else {
+		result += `${date.getUTCMinutes()}:`;
+	}
+	result += `${date.getUTCSeconds().toString().padStart(2, "0")}`;
+	return result;
+};

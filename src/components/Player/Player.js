@@ -4,15 +4,17 @@ import {
 	StepBackwardFilled,
 	StepForwardFilled,
 } from "@ant-design/icons";
-import { Button, Col, Row, Slider } from "antd";
+import { Button } from "antd";
 import clsx from "clsx";
 import React, { useCallback, useEffect } from "react";
 import { PlayerContext } from "../../context/PlayerContextProvider";
 import style from "./Player.module.scss";
+import "./Slider.scss";
 import { BsShuffle } from "react-icons/bs";
 import LoadingSpinner from "../LoadingSpinner";
 import RCSlider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { formatSeconds } from "../../utils/format";
 
 const Player = () => {
 	const {
@@ -21,11 +23,6 @@ const Player = () => {
 		pausePlayer,
 		skipToNextTrack,
 		skipToPreviousTrack,
-		slowedAmount,
-		reverbAmount,
-		setSlowedAmount,
-		setReverbAmount,
-		reverbRef,
 		toggleShuffle,
 		isLoading,
 		handleTrackEnd,
@@ -58,28 +55,24 @@ const Player = () => {
 				handleTimeUpdate(value);
 			}
 		},
-		[isDragging]
+		[isDragging, handleTimeUpdate]
 	);
 
 	const handleDragStart = useCallback(() => {
 		setIsDragging(true);
 	}, []);
 
-	const handleDragEnd = useCallback((value) => {
-		setIsDragging(false);
+	const handleDragEnd = useCallback(
+		(value) => {
+			setIsDragging(false);
 
-		if (audioRef.current) {
-			audioRef.current.currentTime = value;
-			handleTimeUpdate(value);
-		}
-	}, []);
-
-	useEffect(() => {
-		// apply reverb
-		if (reverbRef.current) {
-			reverbRef.current.decay = reverbAmount;
-		}
-	}, [reverbAmount, reverbRef]);
+			if (audioRef.current) {
+				audioRef.current.currentTime = value;
+				handleTimeUpdate(value);
+			}
+		},
+		[handleTimeUpdate]
+	);
 
 	useEffect(() => {
 		if (!audioRef.current) {
@@ -103,6 +96,13 @@ const Player = () => {
 			<div className={style.playerContainer}>
 				<div>
 					<div className={style.playerButtons}>
+						<Button
+							type="text"
+							shape="circle"
+							size="large"
+							disabled
+							className="cursor-default"
+						></Button>
 						<Button
 							type="text"
 							shape="circle"
@@ -141,58 +141,34 @@ const Player = () => {
 						>
 							<StepForwardFilled />
 						</Button>
+
+						<Button
+							type="text"
+							shape="circle"
+							onClick={toggleShuffle}
+							size="large"
+							className="flex justify-center items-center ml-2"
+						>
+							<BsShuffle
+								color={player.shuffle ? "lightgreen" : "white"}
+								size="1.25rem"
+							/>
+						</Button>
 					</div>
 
 					<div className={style.progressContainer}>
+						{formatSeconds(player?.currentTime)}
 						<RCSlider
 							value={player?.currentTime}
 							max={player?.duration}
 							onChange={handleDragChange}
 							onBeforeChange={handleDragStart}
 							onAfterChange={handleDragEnd}
+							disabled={!player.currentTrackId || isLoading}
 						/>
+						{formatSeconds(player?.duration)}
 					</div>
 				</div>
-
-				<Button
-					type="text"
-					shape="circle"
-					onClick={toggleShuffle}
-					size="large"
-					className="flex justify-center items-center"
-				>
-					<BsShuffle
-						color={player.shuffle ? "green" : "white"}
-						size="1.25rem"
-					/>
-				</Button>
-
-				<Row className={style.controlsContainer}>
-					<Col span={4}>Slowed</Col>
-					<Col span={20}>
-						<Slider
-							min={0}
-							max={1}
-							onChange={(value) => {
-								setSlowedAmount(value);
-							}}
-							value={slowedAmount}
-							step={0.05}
-						/>
-					</Col>
-					<Col span={4}>Reverb</Col>
-					<Col span={20}>
-						<Slider
-							min={0.01}
-							max={5}
-							onChange={(value) => {
-								setReverbAmount(value);
-							}}
-							value={reverbAmount}
-							step={0.05}
-						/>
-					</Col>
-				</Row>
 			</div>
 			<audio
 				src={player.currentAudioUrl}

@@ -4,17 +4,23 @@ import { Outlet } from "react-router-dom";
 import Player from "../../components/Player";
 import SplashScreen from "../../pages/SplashScreen/SplashScreen";
 import BottomNav from "../BottomNav";
-import SideNav from "../SideNav";
 import { PlayerContext } from "../../context/PlayerContextProvider";
+import TopNav from "../TopNav";
 
-const { Header, Footer, Sider, Content } = Layout;
+const { Header, Footer, Content } = Layout;
 
 const AppLayout = () => {
 	const { createToneContext } = useContext(PlayerContext);
 
 	return (
 		<Layout className="h-screen" onClick={createToneContext}>
-			<Header>Slowed + Reverb</Header>
+			<Header
+				style={{
+					paddingInline: "1rem",
+				}}
+			>
+				<TopNav />
+			</Header>
 			<Content
 				style={{
 					overflowY: "auto",
