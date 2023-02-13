@@ -28,11 +28,10 @@ const Player = () => {
 		handleTrackEnd,
 		handleTimeUpdate,
 		handleMetadataLoaded,
+		audioRef,
 	} = React.useContext(PlayerContext);
 	const [isDragging, setIsDragging] = React.useState(false);
 	const [showErrorModal, setShowErrorModal] = React.useState(false);
-
-	const audioRef = React.useRef(null);
 
 	const timeUpdateHandler = (e) => {
 		if (isDragging) return;
@@ -67,17 +66,17 @@ const Player = () => {
 		(value) => {
 			setIsDragging(false);
 
-			if (audioRef.current) {
+			if (audioRef?.current) {
 				audioRef.current.currentTime = value;
 				handleTimeUpdate(value);
 			}
 		},
-		[handleTimeUpdate]
+		[handleTimeUpdate, audioRef]
 	);
 
 	useEffect(() => {
 		console.log("EFFECT");
-		if (!audioRef.current) {
+		if (!audioRef?.current) {
 			return;
 		}
 

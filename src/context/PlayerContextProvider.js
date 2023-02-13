@@ -34,6 +34,8 @@ const PlayerContextProvider = ({ children }) => {
 	const reverbRef = React.useRef(null);
 	const slowedAmountRef = React.useRef(slowedAmount);
 	const currentTrackIdRef = React.useRef(null);
+	const audioRef = React.useRef(null);
+	const audioContextRef = React.useRef(null);
 
 	const spotifyPlaylistsById = useMemo(
 		() => playlists?.[LibraryTabOptions.Spotify.value],
@@ -44,6 +46,7 @@ const PlayerContextProvider = ({ children }) => {
 		if (!toneContextCreated) {
 			setToneContextCreated(true);
 			Tone.start();
+			audioContextRef.current = new AudioContext();
 		}
 	}, [toneContextCreated]);
 
@@ -300,9 +303,12 @@ const PlayerContextProvider = ({ children }) => {
 		slowedAmountRef.current = slowedAmount;
 	}, [slowedAmount]);
 
-	// effect for setting up Media Session Actions
-	useEffect(() => {
-		if (!("mediaSession" in navigator)) {
+	const setMediaSessionActions = () => {
+		if (
+			!("mediaSession" in navigator) ||
+			!audioRef.current ||
+			!audioContextRef?.current
+		) {
 			return;
 		}
 
@@ -313,7 +319,16 @@ const PlayerContextProvider = ({ children }) => {
 			skipToPreviousTrack
 		);
 		navigator.mediaSession.setActionHandler("nexttrack", skipToNextTrack);
-	}, [resumePlayer, pausePlayer, skipToPreviousTrack, skipToNextTrack]);
+
+		audioContextRef?.current?.resume().then(() => {
+			audioRef.current.play();
+		});
+	};
+
+	// effect for setting up Media Session Actions
+	useEffect(() => {
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	// effect for setting up Media Session Metadata
 	useEffect(() => {
@@ -380,6 +395,9 @@ const PlayerContextProvider = ({ children }) => {
 				handleTrackEnd,
 				handleTimeUpdate,
 				handleMetadataLoaded,
+				setMediaSessionActions,
+				audioRef,
+				audioContextRef,
 			}}
 		>
 			{children}

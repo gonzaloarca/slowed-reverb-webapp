@@ -13,13 +13,26 @@ const SpotifyPlaylistViewer = () => {
 	const { playlistId } = useParams();
 	const { playlists, fetchSpotifyPlaylistItems, isFetchingPlaylistItems } =
 		React.useContext(PlaylistsContext);
-	const { selectSpotifyTrackFromPlaylist, player, isLoading } =
-		React.useContext(PlayerContext);
+	const {
+		selectSpotifyTrackFromPlaylist,
+		player,
+		isLoading,
+		setMediaSessionActions,
+	} = React.useContext(PlayerContext);
+	const [mediaSession, setMediaSession] = React.useState(false);
 
 	const playlist = useMemo(
 		() => playlists[LibraryTabOptions.Spotify.value]?.[playlistId],
 		[playlistId, playlists]
 	);
+
+	const handleSetMediaSession = () => {
+		if (mediaSession) return;
+
+		setMediaSessionActions();
+
+		setMediaSession(true);
+	};
 
 	React.useEffect(() => {
 		if ((!playlist || !playlist.tracks?.items) && !isFetchingPlaylistItems) {
@@ -48,6 +61,7 @@ const SpotifyPlaylistViewer = () => {
 				dataSource={playlist?.tracks?.items}
 				renderItem={(item) => (
 					<List.Item
+						onMouseEnter={handleSetMediaSession}
 						key={item.id}
 						className={clsx(
 							style.songItem,
