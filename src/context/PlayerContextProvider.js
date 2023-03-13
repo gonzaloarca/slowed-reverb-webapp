@@ -304,6 +304,10 @@ const PlayerContextProvider = ({ children }) => {
 	}, [shuffleTrackList, unshuffleTrackList]);
 
 	const seekTo = useCallback((time) => {
+		if (audioRef.current) {
+			audioRef.current.currentTime = time;
+		}
+
 		setPlayer((player) => ({
 			...player,
 			currentTime: time,
