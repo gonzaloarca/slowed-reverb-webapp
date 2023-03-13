@@ -183,12 +183,14 @@ const PlayerContextProvider = ({ children }) => {
 
 	const playTrack = useCallback(
 		(trackId) => {
+			console.log("playTrack", trackId);
 			if (!toneContextCreated) {
 				return;
 			}
 
 			// TODO: Avoid creating a new audio context if replaying the same track
 
+			console.log("creating audio with fx");
 			createAudioWithFx(trackId).finally(() => {
 				setIsLoading(false);
 			});

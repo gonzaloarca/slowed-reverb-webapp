@@ -19,13 +19,20 @@ const TracksContextProvider = ({ children }) => {
 
 			// if not, download it from spotify using the downloader API
 			if (!track) {
+				console.log("track not found in indexedDB, downloading from spotify");
 				track = await SongDownloaderService.downloadFromSpotifyTrackId(
 					spotifyId
 				);
 
+				console.log("track downloaded from spotify");
+
 				// put the track in indexedDB
 				await db.tracks.put(track);
+
+				console.log("track put in indexedDB");
 			}
+
+			console.log("got track from spotify id");
 
 			// update the tracksById state
 			setTracksById((tracksById) => ({
