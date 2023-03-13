@@ -29,7 +29,7 @@ const PlayerContextProvider = ({ children }) => {
 	const [reverbAmount, setReverbAmount] = React.useState(0.01);
 	const [player, setPlayer] = React.useState(createPlayer());
 	const [isLoading, setIsLoading] = React.useState(false);
-	const [toneContextCreated, setToneContextCreated] = React.useState(false);
+	// const [toneContextCreated, setToneContextCreated] = React.useState(false);
 	const toneRef = React.useRef(null);
 	const reverbRef = React.useRef(null);
 	const slowedAmountRef = React.useRef(slowedAmount);
@@ -42,13 +42,13 @@ const PlayerContextProvider = ({ children }) => {
 		[playlists]
 	);
 
-	const createToneContext = useCallback(() => {
-		if (!toneContextCreated) {
-			setToneContextCreated(true);
-			Tone.start();
-			audioContextRef.current = new AudioContext();
-		}
-	}, [toneContextCreated]);
+	// const createToneContext = useCallback(() => {
+	// 	if (!toneContextCreated) {
+	// 		setToneContextCreated(true);
+	// 		Tone.start();
+	// 		audioContextRef.current = new AudioContext();
+	// 	}
+	// }, [toneContextCreated]);
 
 	async function getAudioBlobFromTrackId(trackId) {
 		const track = await db.tracks.get(trackId);
@@ -105,14 +105,17 @@ const PlayerContextProvider = ({ children }) => {
 	const createAudioWithFx = useCallback(
 		async (trackId) => {
 			console.log("createAudioWithFx");
-			if (!toneContextCreated) {
-				return;
-			}
+
+			// if (!toneContextCreated) {
+			// 	console.log("tone context not created");
+			// 	return;
+			// }
 
 			const audioBlob = await getAudioBlobFromTrackId(trackId);
 			const duration = await getAudioDuration(audioBlob);
 
 			if (!duration) {
+				console.log("no duration");
 				return;
 			}
 
@@ -185,16 +188,12 @@ const PlayerContextProvider = ({ children }) => {
 					});
 			});
 		},
-		[slowedAmount, toneContextCreated]
+		[slowedAmount]
 	);
 
 	const playTrack = useCallback(
 		(trackId) => {
 			console.log("playTrack", trackId);
-			if (!toneContextCreated) {
-				return;
-			}
-
 			// TODO: Avoid creating a new audio context if replaying the same track
 
 			console.log("creating audio with fx");
@@ -202,7 +201,7 @@ const PlayerContextProvider = ({ children }) => {
 				setIsLoading(false);
 			});
 		},
-		[createAudioWithFx, toneContextCreated]
+		[createAudioWithFx]
 	);
 
 	const selectSpotifyTrack = useCallback(
@@ -422,7 +421,6 @@ const PlayerContextProvider = ({ children }) => {
 				setReverbAmount,
 				reverbRef,
 				toneRef,
-				createToneContext,
 				toggleShuffle,
 				handleTrackEnd,
 				handleTimeUpdate,

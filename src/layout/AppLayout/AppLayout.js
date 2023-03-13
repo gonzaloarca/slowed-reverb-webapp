@@ -1,20 +1,17 @@
 import { Layout } from "antd";
-import React, { Suspense, useContext } from "react";
+import React, { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import Player from "../../components/Player";
 import SplashScreen from "../../pages/SplashScreen/SplashScreen";
 import BottomNav from "../BottomNav";
-import { PlayerContext } from "../../context/PlayerContextProvider";
 import TopNav from "../TopNav";
 import style from "./AppLayout.module.scss";
 
 const { Header, Footer, Content } = Layout;
 
 const AppLayout = () => {
-	const { createToneContext } = useContext(PlayerContext);
-
 	return (
-		<Layout className={style.layout} onMouseEnter={createToneContext}>
+		<Layout className={style.layout}>
 			<Header
 				className={style.header}
 				style={{

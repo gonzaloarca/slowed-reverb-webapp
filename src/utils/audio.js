@@ -4,6 +4,7 @@
  * @returns {Promise<number | null>} duration in seconds or null if error
  */
 export const getAudioDuration = async (file) => {
+	console.log("getAudioDuration");
 	const url = URL.createObjectURL(file);
 
 	return new Promise((resolve) => {
