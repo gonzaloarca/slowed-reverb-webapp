@@ -370,6 +370,7 @@ const PlayerContextProvider = ({ children }) => {
 		const track = tracksById[player.currentTrackId];
 
 		if (!track) {
+			console.log("no track, not setting media session metadata");
 			return;
 		}
 
@@ -388,7 +389,7 @@ const PlayerContextProvider = ({ children }) => {
 			artwork = [
 				{
 					src: artworkUrl,
-					sizes: "512x512",
+					sizes: "96x96,128x128,192x192,256x256,384x384,512x512",
 					type: artworkMimeType,
 				},
 			];
