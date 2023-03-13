@@ -11,6 +11,7 @@ const TracksContextProvider = ({ children }) => {
 
 	const getTrackFromSpotifyId = async (spotifyId) => {
 		try {
+			console.log("getting track from spotify id");
 			setIsLoading(true);
 
 			// check if track is already downloaded in indexedDB

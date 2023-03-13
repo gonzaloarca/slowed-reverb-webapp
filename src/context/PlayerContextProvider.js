@@ -104,6 +104,7 @@ const PlayerContextProvider = ({ children }) => {
 
 	const createAudioWithFx = useCallback(
 		async (trackId) => {
+			console.log("createAudioWithFx");
 			if (!toneContextCreated) {
 				return;
 			}
@@ -132,13 +133,14 @@ const PlayerContextProvider = ({ children }) => {
 
 			const url = URL.createObjectURL(blob);
 
-			console.log("url", url);
+			console.log("original url", url);
 
 			// create buffer before loading
 			const buffer = await Tone.Buffer.fromUrl(url);
 
 			return new Promise((resolve) => {
 				Tone.Offline((context) => {
+					console.log("creating slow + reverb audio");
 					reverbRef.current = new Tone.Reverb({
 						wet: 0.5,
 					});
@@ -165,7 +167,7 @@ const PlayerContextProvider = ({ children }) => {
 
 					const blob = arrayBufferToBlob(wavArrayBuffer, "audio/wav");
 					const blobUrl = URL.createObjectURL(blob);
-					console.log("blobUrl", blobUrl);
+					console.log("slowed + reverb audio url", blobUrl);
 
 					setPlayer((player) => ({
 						...player,
@@ -196,6 +198,8 @@ const PlayerContextProvider = ({ children }) => {
 
 	const selectSpotifyTrack = useCallback(
 		(spotifyId) => {
+			console.log("selectSpotifyTrack", spotifyId);
+
 			setPlayer((player) => ({
 				...player,
 				currentTrackId: spotifyId,
@@ -227,6 +231,7 @@ const PlayerContextProvider = ({ children }) => {
 	);
 
 	const handleTrackEnd = useCallback(() => {
+		console.log("HANDLE TRACK END");
 		debugger;
 		const nextTrack = playNextTrackInList();
 
