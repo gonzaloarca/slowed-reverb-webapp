@@ -102,7 +102,132 @@ const PlayerContextProvider = ({ children }) => {
 	// 	}
 	// }
 
-	function handleTrackEnd() {
+	const createAudioWithFx = useCallback(
+		async (trackId) => {
+			if (!toneContextCreated) {
+				return;
+			}
+
+			const audioBlob = await getAudioBlobFromTrackId(trackId);
+			const duration = await getAudioDuration(audioBlob);
+
+			if (!duration) {
+				return;
+			}
+
+			const slowedDuration = duration / (1 - slowedAmount);
+			console.log("slowedDuration", slowedDuration);
+
+			// dispose of previous Tone objects
+			if (toneRef.current) {
+				toneRef.current.dispose();
+			}
+
+			if (reverbRef.current) {
+				reverbRef.current.dispose();
+			}
+
+			// create buffer
+			const blob = await getAudioBlobFromTrackId(trackId);
+
+			const url = URL.createObjectURL(blob);
+
+			console.log("url", url);
+
+			// create buffer before loading
+			const buffer = await Tone.Buffer.fromUrl(url);
+
+			return new Promise((resolve) => {
+				Tone.Offline((context) => {
+					reverbRef.current = new Tone.Reverb({
+						wet: 0.5,
+					});
+
+					toneRef.current = new Tone.Player({
+						playbackRate: 1 - slowedAmount,
+					});
+
+					toneRef.current.connect(reverbRef.current);
+
+					reverbRef.current.connect(context.destination);
+
+					// load the buffer
+					toneRef.current.buffer.set(buffer);
+
+					// sync the player to the transport
+					toneRef.current.start(0);
+
+					// start the transport
+					// context.transport.start();
+				}, slowedDuration).then((buffer) => {
+					// save as wav blob in currentAudioRef
+					const wavArrayBuffer = audioBufferToWav(buffer.get());
+
+					const blob = arrayBufferToBlob(wavArrayBuffer, "audio/wav");
+					const blobUrl = URL.createObjectURL(blob);
+					console.log("blobUrl", blobUrl);
+
+					setPlayer((player) => ({
+						...player,
+						currentAudioUrl: blobUrl,
+					}));
+
+					resolve();
+				});
+			});
+		},
+		[slowedAmount, toneContextCreated]
+	);
+
+	const playTrack = useCallback(
+		(trackId) => {
+			if (!toneContextCreated) {
+				return;
+			}
+
+			// TODO: Avoid creating a new audio context if replaying the same track
+
+			createAudioWithFx(trackId).finally(() => {
+				setIsLoading(false);
+			});
+		},
+		[createAudioWithFx, toneContextCreated]
+	);
+
+	const selectSpotifyTrack = useCallback(
+		(spotifyId) => {
+			setPlayer((player) => ({
+				...player,
+				currentTrackId: spotifyId,
+				currentAudioUrl: null,
+				currentTime: 0,
+				duration: 0,
+				isPlaying: true,
+			}));
+
+			setIsLoading(true);
+			currentTrackIdRef.current = spotifyId;
+
+			// find youtube ID from spotify ID
+			const track = Object.values(tracksById).find(
+				(track) => track.id === spotifyId
+			);
+
+			if (track) {
+				playTrack(track.id);
+			} else {
+				getTrackFromSpotifyId(spotifyId).then((track) => {
+					// Only play track if it's still the current track,
+					// as the user may have selected another track in the meantime
+					if (currentTrackIdRef.current === track.id) playTrack(track.id);
+				});
+			}
+		},
+		[getTrackFromSpotifyId, playTrack, tracksById]
+	);
+
+	const handleTrackEnd = useCallback(() => {
+		debugger;
 		const nextTrack = playNextTrackInList();
 
 		if (nextTrack) {
@@ -112,122 +237,7 @@ const PlayerContextProvider = ({ children }) => {
 				createPlayer() // reset player
 			);
 		}
-	}
-
-	function playTrack(trackId) {
-		if (!toneContextCreated) {
-			return;
-		}
-
-		// TODO: Avoid creating a new audio context if replaying the same track
-
-		createAudioWithFx(trackId).finally(() => {
-			setIsLoading(false);
-		});
-	}
-
-	async function createAudioWithFx(trackId) {
-		if (!toneContextCreated) {
-			return;
-		}
-
-		const audioBlob = await getAudioBlobFromTrackId(trackId);
-		const duration = await getAudioDuration(audioBlob);
-
-		if (!duration) {
-			return;
-		}
-
-		const slowedDuration = duration / (1 - slowedAmount);
-		console.log("slowedDuration", slowedDuration);
-
-		// dispose of previous Tone objects
-		if (toneRef.current) {
-			toneRef.current.dispose();
-		}
-
-		if (reverbRef.current) {
-			reverbRef.current.dispose();
-		}
-
-		// create buffer
-		const blob = await getAudioBlobFromTrackId(trackId);
-
-		const url = URL.createObjectURL(blob);
-
-		console.log("url", url);
-
-		// create buffer before loading
-		const buffer = await Tone.Buffer.fromUrl(url);
-
-		return new Promise((resolve) => {
-			Tone.Offline((context) => {
-				reverbRef.current = new Tone.Reverb({
-					wet: 0.5,
-				});
-
-				toneRef.current = new Tone.Player({
-					playbackRate: 1 - slowedAmount,
-				});
-
-				toneRef.current.connect(reverbRef.current);
-
-				reverbRef.current.connect(context.destination);
-
-				// load the buffer
-				toneRef.current.buffer.set(buffer);
-
-				// sync the player to the transport
-				toneRef.current.start(0);
-
-				// start the transport
-				// context.transport.start();
-			}, slowedDuration).then((buffer) => {
-				// save as wav blob in currentAudioRef
-				const wavArrayBuffer = audioBufferToWav(buffer.get());
-
-				const blob = arrayBufferToBlob(wavArrayBuffer, "audio/wav");
-				const blobUrl = URL.createObjectURL(blob);
-				console.log("blobUrl", blobUrl);
-
-				setPlayer((player) => ({
-					...player,
-					currentAudioUrl: blobUrl,
-				}));
-
-				resolve();
-			});
-		});
-	}
-
-	function selectSpotifyTrack(spotifyId) {
-		setPlayer((player) => ({
-			...player,
-			currentTrackId: spotifyId,
-			currentAudioUrl: null,
-			currentTime: 0,
-			duration: 0,
-			isPlaying: true,
-		}));
-
-		setIsLoading(true);
-		currentTrackIdRef.current = spotifyId;
-
-		// find youtube ID from spotify ID
-		const track = Object.values(tracksById).find(
-			(track) => track.id === spotifyId
-		);
-
-		if (track) {
-			playTrack(track.id);
-		} else {
-			getTrackFromSpotifyId(spotifyId).then((track) => {
-				// Only play track if it's still the current track,
-				// as the user may have selected another track in the meantime
-				if (currentTrackIdRef.current === track.id) playTrack(track.id);
-			});
-		}
-	}
+	}, [playNextTrackInList, selectSpotifyTrack]);
 
 	function selectSpotifyTrackFromPlaylist(spotifyId, playlistId) {
 		// set queue to tracks from playlist
@@ -254,18 +264,19 @@ const PlayerContextProvider = ({ children }) => {
 		}));
 	}, []);
 
-	function pausePlayer() {
+	const pausePlayer = useCallback(() => {
 		setPlayer((player) => ({
 			...player,
 			isPlaying: false,
 		}));
-	}
+	}, []);
 
-	function skipToNextTrack() {
+	const skipToNextTrack = useCallback(() => {
+		console.log("skipToNextTrack");
 		handleTrackEnd();
-	}
+	}, [handleTrackEnd]);
 
-	function skipToPreviousTrack() {
+	const skipToPreviousTrack = useCallback(() => {
 		// TODO: if we're out of the first N seconds, restart the current track
 
 		const previousTrack = playPreviousTrackInList();
@@ -273,7 +284,7 @@ const PlayerContextProvider = ({ children }) => {
 		if (previousTrack) {
 			selectSpotifyTrack(previousTrack.id);
 		}
-	}
+	}, [playPreviousTrackInList, selectSpotifyTrack]);
 
 	const toggleShuffle = useCallback(() => {
 		setPlayer((player) => {
@@ -303,12 +314,9 @@ const PlayerContextProvider = ({ children }) => {
 		slowedAmountRef.current = slowedAmount;
 	}, [slowedAmount]);
 
-	const setMediaSessionActions = () => {
-		if (
-			!("mediaSession" in navigator) ||
-			!audioRef.current ||
-			!audioContextRef?.current
-		) {
+	useEffect(() => {
+		console.log("setMediaSessionActions");
+		if (!("mediaSession" in navigator)) {
 			return;
 		}
 
@@ -319,16 +327,8 @@ const PlayerContextProvider = ({ children }) => {
 			skipToPreviousTrack
 		);
 		navigator.mediaSession.setActionHandler("nexttrack", skipToNextTrack);
-
-		audioContextRef?.current?.resume().then(() => {
-			audioRef.current.play();
-		});
-	};
-
-	// effect for setting up Media Session Actions
-	useEffect(() => {
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+		navigator.mediaSession.setActionHandler("seekto", seekTo);
+	}, [pausePlayer, resumePlayer, seekTo, skipToNextTrack, skipToPreviousTrack]);
 
 	// effect for setting up Media Session Metadata
 	useEffect(() => {
@@ -395,7 +395,6 @@ const PlayerContextProvider = ({ children }) => {
 				handleTrackEnd,
 				handleTimeUpdate,
 				handleMetadataLoaded,
-				setMediaSessionActions,
 				audioRef,
 				audioContextRef,
 			}}

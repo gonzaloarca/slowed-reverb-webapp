@@ -37,7 +37,8 @@ const TrackListContextProvider = ({ children }) => {
 		setTrackList([]);
 	};
 
-	const playNextTrackInList = () => {
+	const playNextTrackInList = useCallback(() => {
+		debugger;
 		if (currentTrackIndex === trackList.length - 1) {
 			return null;
 		}
@@ -46,7 +47,7 @@ const TrackListContextProvider = ({ children }) => {
 		setCurrentTrackIndex((index) => index + 1);
 
 		return nextTrack;
-	};
+	}, [currentTrackIndex, trackList]);
 
 	const playPreviousTrackInList = () => {
 		if (currentTrackIndex === 0) {
@@ -104,6 +105,7 @@ const TrackListContextProvider = ({ children }) => {
 	}, [currentTrackIndex]);
 
 	const _setTrackList = (newTrackList, fromTrackIndex, shuffle = false) => {
+		debugger;
 		originalTrackList.current = newTrackList;
 
 		setTrackList(newTrackList);

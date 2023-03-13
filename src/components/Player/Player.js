@@ -75,25 +75,30 @@ const Player = () => {
 	);
 
 	useEffect(() => {
+		// debugger;
 		console.log("EFFECT");
 		if (!audioRef?.current) {
 			return;
 		}
 
-		if (!player.currentAudioUrl) {
+		if (player.isPlaying) {
+			if (audioRef.current.src !== player.currentAudioUrl)
+				audioRef.current.src = player.currentAudioUrl;
+
+			if (player.currentAudioUrl) audioRef.current.play();
+		} else {
 			audioRef.current.pause();
-			return;
 		}
 
-		if (player.isPlaying && audioRef.current.paused) {
-			audioRef.current.play().catch((err) => {
-				console.error(err);
-				setShowErrorModal(true);
-				pausePlayer();
-			});
-		} else if (!player.isPlaying && !audioRef.current.paused) {
-			audioRef.current.pause();
-		}
+		// if (!player.currentAudioUrl) {
+		// 	audioRef.current.pause();
+		// 	return;
+		// }
+
+		// if (player.isPlaying && audioRef.current.paused) {
+		// } else if (!player.isPlaying && !audioRef.current.paused) {
+		// 	audioRef.current.pause();
+		// }
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [player.isPlaying, player.currentAudioUrl]);
 
@@ -112,7 +117,7 @@ const Player = () => {
 						<Button
 							type="text"
 							shape="circle"
-							onClick={skipToPreviousTrack}
+							onClickCapture={skipToPreviousTrack}
 							size="large"
 						>
 							<StepBackwardFilled />
@@ -123,7 +128,7 @@ const Player = () => {
 							type="text"
 							shape="circle"
 							disabled={!player.currentTrackId || isLoading}
-							onClick={() => {
+							onClickCapture={() => {
 								if (player.isPlaying) {
 									pausePlayer();
 								} else {
@@ -142,7 +147,7 @@ const Player = () => {
 						<Button
 							type="text"
 							shape="circle"
-							onClick={skipToNextTrack}
+							onClickCapture={skipToNextTrack}
 							size="large"
 						>
 							<StepForwardFilled />
@@ -151,7 +156,7 @@ const Player = () => {
 						<Button
 							type="text"
 							shape="circle"
-							onClick={toggleShuffle}
+							onClickCapture={toggleShuffle}
 							size="large"
 							className="flex justify-center items-center ml-2"
 						>
@@ -177,7 +182,6 @@ const Player = () => {
 				</div>
 			</div>
 			<audio
-				src={player.currentAudioUrl}
 				ref={audioRef}
 				onLoadedMetadata={loadedHandler}
 				onTimeUpdate={timeUpdateHandler}
