@@ -159,10 +159,13 @@ const PlayerContextProvider = ({ children }) => {
 					// sync the player to the transport
 					toneRef.current.start(0);
 
+					console.log("starting transport");
+
 					// start the transport
 					// context.transport.start();
 				}, slowedDuration)
 					.then((buffer) => {
+						console.log("finished processing audio");
 						// save as wav blob in currentAudioRef
 						const wavArrayBuffer = audioBufferToWav(buffer.get());
 
