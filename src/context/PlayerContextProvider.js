@@ -161,21 +161,25 @@ const PlayerContextProvider = ({ children }) => {
 
 					// start the transport
 					// context.transport.start();
-				}, slowedDuration).then((buffer) => {
-					// save as wav blob in currentAudioRef
-					const wavArrayBuffer = audioBufferToWav(buffer.get());
+				}, slowedDuration)
+					.then((buffer) => {
+						// save as wav blob in currentAudioRef
+						const wavArrayBuffer = audioBufferToWav(buffer.get());
 
-					const blob = arrayBufferToBlob(wavArrayBuffer, "audio/wav");
-					const blobUrl = URL.createObjectURL(blob);
-					console.log("slowed + reverb audio url", blobUrl);
+						const blob = arrayBufferToBlob(wavArrayBuffer, "audio/wav");
+						const blobUrl = URL.createObjectURL(blob);
+						console.log("slowed + reverb audio url", blobUrl);
 
-					setPlayer((player) => ({
-						...player,
-						currentAudioUrl: blobUrl,
-					}));
+						setPlayer((player) => ({
+							...player,
+							currentAudioUrl: blobUrl,
+						}));
 
-					resolve();
-				});
+						resolve();
+					})
+					.catch((err) => {
+						console.error(err);
+					});
 			});
 		},
 		[slowedAmount, toneContextCreated]
