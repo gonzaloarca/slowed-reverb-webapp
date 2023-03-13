@@ -312,6 +312,7 @@ const PlayerContextProvider = ({ children }) => {
 
 	const mediaSessionSeekTo = useCallback(
 		(e) => {
+			console.log("mediaSessionSeekTo", e);
 			seekTo(e.seekTime);
 		},
 		[seekTo]
