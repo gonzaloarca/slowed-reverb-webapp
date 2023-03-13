@@ -310,6 +310,13 @@ const PlayerContextProvider = ({ children }) => {
 		}));
 	}, []);
 
+	const mediaSessionSeekTo = useCallback(
+		(e) => {
+			seekTo(e.seekTime);
+		},
+		[seekTo]
+	);
+
 	useEffect(() => {
 		slowedAmountRef.current = slowedAmount;
 	}, [slowedAmount]);
@@ -327,8 +334,14 @@ const PlayerContextProvider = ({ children }) => {
 			skipToPreviousTrack
 		);
 		navigator.mediaSession.setActionHandler("nexttrack", skipToNextTrack);
-		navigator.mediaSession.setActionHandler("seekto", seekTo);
-	}, [pausePlayer, resumePlayer, seekTo, skipToNextTrack, skipToPreviousTrack]);
+		navigator.mediaSession.setActionHandler("seekto", mediaSessionSeekTo);
+	}, [
+		pausePlayer,
+		resumePlayer,
+		mediaSessionSeekTo,
+		skipToNextTrack,
+		skipToPreviousTrack,
+	]);
 
 	// effect for setting up Media Session Metadata
 	useEffect(() => {
