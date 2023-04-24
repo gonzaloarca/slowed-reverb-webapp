@@ -53,6 +53,21 @@ const PlayerContextProvider = ({ children }) => {
 	// 	}
 	// }, [toneContextCreated]);
 
+	const currentTrackMetadata = useMemo(() => {
+		if (!player.currentTrackId) return null;
+
+		const track = trackList.find((track) => track.id === player.currentTrackId);
+
+		if (!track) {
+			console.log("track not found while getting metadata in tracklist");
+			return null;
+		}
+
+		return {
+			...track.metadata,
+		};
+	}, [player?.currentTrackId, trackList]);
+
 	async function getAudioBlobFromTrackId(trackId) {
 		const track = await db.tracks.get(trackId);
 
@@ -104,28 +119,6 @@ const PlayerContextProvider = ({ children }) => {
 	// 		playTrack(track.id);
 	// 	}
 	// }
-
-	const setMediaSessionMetadataFromTracklist = useCallback(
-		(trackId) => {
-			const track = trackListRef?.current?.find(
-				(track) => track.id === trackId
-			);
-			if (!track) {
-				console.log(
-					"no track found in tracklist, not setting media session metadata"
-				);
-				return;
-			}
-
-			navigator.mediaSession.metadata = new MediaMetadata({
-				title: track.metadata.title,
-				artist: track.metadata.artist,
-				album: track.metadata.album,
-				artwork: [...track.metadata.images],
-			});
-		},
-		[trackList]
-	);
 
 	const createAudioWithFx = useCallback(
 		async (trackId) => {
@@ -231,8 +224,6 @@ const PlayerContextProvider = ({ children }) => {
 
 	const selectSpotifyTrack = useCallback(
 		(spotifyId) => {
-			setMediaSessionMetadataFromTracklist(spotifyId);
-
 			console.log("selectSpotifyTrack", spotifyId);
 
 			setPlayer((player) => ({
@@ -268,12 +259,7 @@ const PlayerContextProvider = ({ children }) => {
 					});
 			}
 		},
-		[
-			getTrackFromSpotifyId,
-			playTrack,
-			tracksById,
-			setMediaSessionMetadataFromTracklist,
-		]
+		[getTrackFromSpotifyId, playTrack, tracksById]
 	);
 
 	const handleTrackEnd = useCallback(() => {
@@ -374,28 +360,6 @@ const PlayerContextProvider = ({ children }) => {
 		slowedAmountRef.current = slowedAmount;
 	}, [slowedAmount]);
 
-	useEffect(() => {
-		console.log("setMediaSessionActions");
-		if (!("mediaSession" in navigator)) {
-			return;
-		}
-
-		navigator.mediaSession.setActionHandler("play", resumePlayer);
-		navigator.mediaSession.setActionHandler("pause", pausePlayer);
-		navigator.mediaSession.setActionHandler(
-			"previoustrack",
-			skipToPreviousTrack
-		);
-		navigator.mediaSession.setActionHandler("nexttrack", skipToNextTrack);
-		navigator.mediaSession.setActionHandler("seekto", mediaSessionSeekTo);
-	}, [
-		pausePlayer,
-		resumePlayer,
-		mediaSessionSeekTo,
-		skipToNextTrack,
-		skipToPreviousTrack,
-	]);
-
 	// effect for setting up Media Session Metadata
 	// useEffect(() => {
 	// 	if (!("mediaSession" in navigator)) {
@@ -467,6 +431,8 @@ const PlayerContextProvider = ({ children }) => {
 				audioContextRef,
 				error,
 				setError,
+				currentTrackMetadata,
+				mediaSessionSeekTo,
 			}}
 		>
 			{children}

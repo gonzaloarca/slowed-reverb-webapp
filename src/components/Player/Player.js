@@ -29,8 +29,10 @@ const Player = () => {
 		handleTimeUpdate,
 		handleMetadataLoaded,
 		audioRef,
+		mediaSessionSeekTo,
 		error: playerError,
 		setError: setPlayerError,
+		currentTrackMetadata,
 	} = React.useContext(PlayerContext);
 	const [isDragging, setIsDragging] = React.useState(false);
 	const [showErrorModal, setShowErrorModal] = React.useState(false);
@@ -110,6 +112,49 @@ const Player = () => {
 		// }
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [player.isPlaying, player.currentAudioUrl]);
+
+	useEffect(() => {
+		if (!currentTrackMetadata) {
+			console.log("no metadata");
+			return;
+		}
+
+		console.log("setMediaSessionMetadata");
+
+		if (!("mediaSession" in navigator)) {
+			console.log("no media session in navigator");
+			return;
+		}
+
+		navigator.mediaSession.metadata = new MediaMetadata({
+			title: currentTrackMetadata.title,
+			artist: currentTrackMetadata.artist,
+			album: currentTrackMetadata.album,
+			artwork: currentTrackMetadata.images,
+		});
+	}, [currentTrackMetadata]);
+
+	useEffect(() => {
+		console.log("setMediaSessionActions");
+		if (!("mediaSession" in navigator)) {
+			return;
+		}
+
+		navigator.mediaSession.setActionHandler("play", resumePlayer);
+		navigator.mediaSession.setActionHandler("pause", pausePlayer);
+		navigator.mediaSession.setActionHandler(
+			"previoustrack",
+			skipToPreviousTrack
+		);
+		navigator.mediaSession.setActionHandler("nexttrack", skipToNextTrack);
+		navigator.mediaSession.setActionHandler("seekto", mediaSessionSeekTo);
+	}, [
+		pausePlayer,
+		resumePlayer,
+		mediaSessionSeekTo,
+		skipToNextTrack,
+		skipToPreviousTrack,
+	]);
 
 	return (
 		<>
