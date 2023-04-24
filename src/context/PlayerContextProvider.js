@@ -23,6 +23,7 @@ const PlayerContextProvider = ({ children }) => {
 		setTrackList,
 		shuffleTrackList,
 		unshuffleTrackList,
+		trackList,
 	} = React.useContext(TrackListContext);
 	const { playlists } = React.useContext(PlaylistsContext);
 	const [slowedAmount, setSlowedAmount] = React.useState(0);
@@ -255,10 +256,7 @@ const PlayerContextProvider = ({ children }) => {
 	function selectSpotifyTrackFromPlaylist(spotifyId, playlistId) {
 		// set queue to tracks from playlist
 		let playlistItems = spotifyPlaylistsById[playlistId]?.tracks?.items?.map(
-			(trackItem) =>
-				createTrack({
-					spotifyId: trackItem.track.id,
-				})
+			(trackItem) => createTrack(trackItem)
 		);
 
 		const trackIndex = playlistItems.findIndex(
@@ -361,47 +359,69 @@ const PlayerContextProvider = ({ children }) => {
 		skipToPreviousTrack,
 	]);
 
+	const setMediaSessionMetadataFromTracklist = useCallback(
+		(trackId) => {
+			const track = trackList.find((track) => track.id === trackId);
+			if (!track) {
+				console.log(
+					"no track found in tracklist, not setting media session metadata"
+				);
+				return;
+			}
+
+			navigator.mediaSession.metadata = new MediaMetadata({
+				title: track.metadata.title,
+				artist: track.metadata.artist,
+				album: track.metadata.album,
+				artwork: [...track.metadata.images],
+			});
+		},
+		[trackList]
+	);
+
 	// effect for setting up Media Session Metadata
 	useEffect(() => {
 		if (!("mediaSession" in navigator)) {
 			return;
 		}
 
-		const track = tracksById[player.currentTrackId];
+		setMediaSessionMetadataFromTracklist(player.currentTrackId);
 
-		if (!track) {
-			console.log("no track, not setting media session metadata");
-			return;
-		}
+		// const track = tracksById[player.currentTrackId];
 
-		const artworkArrayBuffer = track.metadata.common?.picture?.[0]?.data;
+		// if (!track) {
+		// 	console.log("no track found in tracksById, not setting media session metadata");
+		// 	return;
+		// }
 
-		let artwork = [];
+		// const artworkArrayBuffer = track.metadata.common?.picture?.[0]?.data;
 
-		if (artworkArrayBuffer) {
-			const artworkMimeType = track.metadata.common.picture[0].format;
-			const artworkBlob = arrayBufferToBlob(
-				artworkArrayBuffer,
-				artworkMimeType
-			);
-			const artworkUrl = URL.createObjectURL(artworkBlob);
+		// let artwork = [];
 
-			artwork = [
-				{
-					src: artworkUrl,
-					sizes: "96x96,128x128,192x192,256x256,384x384,512x512",
-					type: artworkMimeType,
-				},
-			];
-		}
+		// if (artworkArrayBuffer) {
+		// 	const artworkMimeType = track.metadata.common.picture[0].format;
+		// 	const artworkBlob = arrayBufferToBlob(
+		// 		artworkArrayBuffer,
+		// 		artworkMimeType
+		// 	);
+		// 	const artworkUrl = URL.createObjectURL(artworkBlob);
 
-		navigator.mediaSession.metadata = new MediaMetadata({
-			title: track.metadata.common.title,
-			artist: track.metadata.common.artist,
-			album: track.metadata.common.album,
-			artwork,
-		});
-	}, [player.currentTrackId, tracksById]);
+		// 	artwork = [
+		// 		{
+		// 			src: artworkUrl,
+		// 			sizes: "96x96,128x128,192x192,256x256,384x384,512x512",
+		// 			type: artworkMimeType,
+		// 		},
+		// 	];
+		// }
+
+		// navigator.mediaSession.metadata = new MediaMetadata({
+		// 	title: track.metadata.common.title,
+		// 	artist: track.metadata.common.artist,
+		// 	album: track.metadata.common.album,
+		// 	artwork,
+		// });
+	}, [player.currentTrackId, tracksById, setMediaSessionMetadataFromTracklist]);
 
 	return (
 		<PlayerContext.Provider
