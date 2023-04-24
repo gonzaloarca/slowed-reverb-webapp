@@ -37,6 +37,7 @@ const PlayerContextProvider = ({ children }) => {
 	const currentTrackIdRef = React.useRef(null);
 	const audioRef = React.useRef(null);
 	const audioContextRef = React.useRef(null);
+	const trackListRef = React.useRef(null);
 
 	const spotifyPlaylistsById = useMemo(
 		() => playlists?.[LibraryTabOptions.Spotify.value],
@@ -102,6 +103,28 @@ const PlayerContextProvider = ({ children }) => {
 	// 		playTrack(track.id);
 	// 	}
 	// }
+
+	const setMediaSessionMetadataFromTracklist = useCallback(
+		(trackId) => {
+			const track = trackListRef?.current?.find(
+				(track) => track.id === trackId
+			);
+			if (!track) {
+				console.log(
+					"no track found in tracklist, not setting media session metadata"
+				);
+				return;
+			}
+
+			navigator.mediaSession.metadata = new MediaMetadata({
+				title: track.metadata.title,
+				artist: track.metadata.artist,
+				album: track.metadata.album,
+				artwork: [...track.metadata.images],
+			});
+		},
+		[trackList]
+	);
 
 	const createAudioWithFx = useCallback(
 		async (trackId) => {
@@ -207,6 +230,8 @@ const PlayerContextProvider = ({ children }) => {
 
 	const selectSpotifyTrack = useCallback(
 		(spotifyId) => {
+			setMediaSessionMetadataFromTracklist(spotifyId);
+
 			console.log("selectSpotifyTrack", spotifyId);
 
 			setPlayer((player) => ({
@@ -236,7 +261,12 @@ const PlayerContextProvider = ({ children }) => {
 				});
 			}
 		},
-		[getTrackFromSpotifyId, playTrack, tracksById]
+		[
+			getTrackFromSpotifyId,
+			playTrack,
+			tracksById,
+			setMediaSessionMetadataFromTracklist,
+		]
 	);
 
 	const handleTrackEnd = useCallback(() => {
@@ -254,8 +284,6 @@ const PlayerContextProvider = ({ children }) => {
 	}, [playNextTrackInList, selectSpotifyTrack]);
 
 	function selectSpotifyTrackFromPlaylist(spotifyId, playlistId) {
-		setMediaSessionMetadataFromTracklist(spotifyId);
-
 		let playlistItems = spotifyPlaylistsById[playlistId]?.tracks?.items?.map(
 			(trackItem) => createTrack(trackItem)
 		);
@@ -265,6 +293,7 @@ const PlayerContextProvider = ({ children }) => {
 		);
 
 		setTrackList(playlistItems, trackIndex, player.shuffle);
+		trackListRef.current = playlistItems;
 
 		selectSpotifyTrack(spotifyId);
 	}
@@ -363,26 +392,6 @@ const PlayerContextProvider = ({ children }) => {
 		skipToNextTrack,
 		skipToPreviousTrack,
 	]);
-
-	const setMediaSessionMetadataFromTracklist = useCallback(
-		(trackId) => {
-			const track = trackList.find((track) => track.id === trackId);
-			if (!track) {
-				console.log(
-					"no track found in tracklist, not setting media session metadata"
-				);
-				return;
-			}
-
-			navigator.mediaSession.metadata = new MediaMetadata({
-				title: track.metadata.title,
-				artist: track.metadata.artist,
-				album: track.metadata.album,
-				artwork: [...track.metadata.images],
-			});
-		},
-		[trackList]
-	);
 
 	// effect for setting up Media Session Metadata
 	// useEffect(() => {
