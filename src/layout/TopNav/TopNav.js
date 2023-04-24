@@ -12,14 +12,17 @@ const TopNav = () => {
 	return (
 		<>
 			<div className="flex justify-between items-center">
-				<h1
-					className="m-0"
-					style={{
-						fontSize: "1.2rem",
-					}}
-				>
-					Slow + Reverb
-				</h1>
+				<div className="flex">
+					<h1
+						className="mb-0 mr-2"
+						style={{
+							fontSize: "1.2rem",
+						}}
+					>
+						Slow + Reverb
+					</h1>
+					<span>v{process.env.REACT_APP_VERSION}</span>
+				</div>
 
 				<Button
 					type="text"
