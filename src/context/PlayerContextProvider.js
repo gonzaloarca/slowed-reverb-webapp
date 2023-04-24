@@ -30,6 +30,7 @@ const PlayerContextProvider = ({ children }) => {
 	const [reverbAmount, setReverbAmount] = React.useState(0.01);
 	const [player, setPlayer] = React.useState(createPlayer());
 	const [isLoading, setIsLoading] = React.useState(false);
+	const [error, setError] = React.useState(null);
 	// const [toneContextCreated, setToneContextCreated] = React.useState(false);
 	const toneRef = React.useRef(null);
 	const reverbRef = React.useRef(null);
@@ -254,11 +255,17 @@ const PlayerContextProvider = ({ children }) => {
 			if (track) {
 				playTrack(track.id);
 			} else {
-				getTrackFromSpotifyId(spotifyId).then((track) => {
-					// Only play track if it's still the current track,
-					// as the user may have selected another track in the meantime
-					if (currentTrackIdRef.current === track.id) playTrack(track.id);
-				});
+				getTrackFromSpotifyId(spotifyId)
+					.then((track) => {
+						// Only play track if it's still the current track,
+						// as the user may have selected another track in the meantime
+						if (currentTrackIdRef.current === track.id) playTrack(track.id);
+					})
+					.catch((err) => {
+						console.error(err);
+
+						setError("An error occurred while downloading the track");
+					});
 			}
 		},
 		[
@@ -380,10 +387,6 @@ const PlayerContextProvider = ({ children }) => {
 			skipToPreviousTrack
 		);
 		navigator.mediaSession.setActionHandler("nexttrack", skipToNextTrack);
-		navigator.mediaSession.setActionHandler(
-			"previoustrack",
-			skipToPreviousTrack
-		);
 		navigator.mediaSession.setActionHandler("seekto", mediaSessionSeekTo);
 	}, [
 		pausePlayer,
@@ -462,6 +465,8 @@ const PlayerContextProvider = ({ children }) => {
 				handleMetadataLoaded,
 				audioRef,
 				audioContextRef,
+				error,
+				setError,
 			}}
 		>
 			{children}

@@ -29,6 +29,8 @@ const Player = () => {
 		handleTimeUpdate,
 		handleMetadataLoaded,
 		audioRef,
+		error: playerError,
+		setError: setPlayerError,
 	} = React.useContext(PlayerContext);
 	const [isDragging, setIsDragging] = React.useState(false);
 	const [showErrorModal, setShowErrorModal] = React.useState(false);
@@ -57,6 +59,13 @@ const Player = () => {
 		},
 		[isDragging, handleTimeUpdate]
 	);
+
+	useEffect(() => {
+		if (playerError) {
+			setShowErrorModal(true);
+			setPlayerError(null);
+		}
+	}, [playerError, setPlayerError]);
 
 	const handleDragStart = useCallback(() => {
 		setIsDragging(true);
