@@ -9,26 +9,29 @@ import PlayerContextProvider from "./context/PlayerContextProvider";
 import PlaylistsContextProvider from "./context/PlaylistsContextProvider";
 import AuthContextProvider from "./context/AuthContextProvider";
 import { ConfigProvider, theme } from "antd";
-
+import { Analytics } from "@vercel/analytics/react";
 function App() {
 	return (
-		<ConfigProvider
-			theme={{
-				algorithm: theme.darkAlgorithm,
-			}}
-		>
-			<AuthContextProvider>
-				<PlaylistsContextProvider>
-					<TracksContextProvider>
-						<TrackListContextProvider>
-							<PlayerContextProvider>
-								<RouterProvider router={AppRouter} />
-							</PlayerContextProvider>
-						</TrackListContextProvider>
-					</TracksContextProvider>
-				</PlaylistsContextProvider>
-			</AuthContextProvider>
-		</ConfigProvider>
+		<>
+			<ConfigProvider
+				theme={{
+					algorithm: theme.darkAlgorithm,
+				}}
+			>
+				<AuthContextProvider>
+					<PlaylistsContextProvider>
+						<TracksContextProvider>
+							<TrackListContextProvider>
+								<PlayerContextProvider>
+									<RouterProvider router={AppRouter} />
+								</PlayerContextProvider>
+							</TrackListContextProvider>
+						</TracksContextProvider>
+					</PlaylistsContextProvider>
+				</AuthContextProvider>
+			</ConfigProvider>
+			<Analytics />
+		</>
 	);
 }
 
